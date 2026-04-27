@@ -4,6 +4,7 @@
    ════════════════════════════════════════════════════════ */
 
 import { initLock }    from './lock.js';
+import { initHealth }  from './health.js';
 import { initClock }   from './clock.js';
 import { initMood, getMoodScore }     from './mood.js';
 import { initHabits, getHabitsScore } from './habits.js';
@@ -65,6 +66,7 @@ function updateScoreRing(score) {
 function init() {
   injectRingGradient();
   initClock();
+  initHealth();
   initMood();
   initHabits();
   initTodo();
