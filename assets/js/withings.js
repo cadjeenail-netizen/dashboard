@@ -1,22 +1,21 @@
 /* ════════════════════════════════════════════════════════
-   WITHINGS.JS — OAuth client-side + récupération données santé
-   Compatible GitHub Pages (pas de backend)
-   Tokens stockés dans localStorage via storage.js
+   WITHINGS.JS — OAuth via API serverless Vercel
+   ✅ AUCUN secret en clair dans ce fichier
+   Le CLIENT_SECRET vit dans les variables d'env Vercel
    ════════════════════════════════════════════════════════ */
 
 import { get, set, remove } from './storage.js';
 
-/* ── Credentials Withings (client-side, usage personnel) ── */
-const CLIENT_ID     = '56e3a4dbeadf02b036a408d587e6db1961f2ab6b9790bfe79009fb826be8b861';
-const CLIENT_SECRET = '274de3e024f6312b812470ae04cd5959b078b926106e7e97bbc55e1067a28d86';
-const REDIRECT_URI  = 'https://cadjeenail-netizen.github.io/dashboard/';
-const TOKEN_URL     = 'https://wbsapi.withings.net/v2/oauth2';
-const API_URL       = 'https://wbsapi.withings.net';
+/* ── Public — pas un secret ── */
+const CLIENT_ID    = '56e3a4dbeadf02b036a408d587e6db1961f2ab6b9790bfe79009fb826be8b861';
+const REDIRECT_URI = window.location.origin + window.location.pathname;
+const API_PROXY    = '/api/withings';     // notre fonction serverless
+const WITHINGS_API = 'https://wbsapi.withings.net';
 
-/* ── Helpers token ── */
+/* ── Tokens ── */
 export function getAccessToken()  { return get('w_access', null); }
 export function getRefreshToken() { return get('w_refresh', null); }
-function getExpiresAt()  { return get('w_exp', 0); }
+function getExpiresAt() { return get('w_exp', 0); }
 export function isConnected() { return !!getAccessToken(); }
 
 function saveTokens({ access_token, refresh_token, expires_in }) {
@@ -29,32 +28,26 @@ export function disconnect() {
   remove('w_access'); remove('w_refresh'); remove('w_exp');
 }
 
-/* ── Vérifie si le token est expiré (buffer 2 min) ── */
 function isTokenExpired() {
   return Date.now() >= getExpiresAt() - 120_000;
 }
 
-/* ── Refresh du token ── */
+/* ── Refresh via le proxy serverless ── */
 async function refreshToken() {
   const refresh = getRefreshToken();
   if (!refresh) throw new Error('Pas de refresh token');
 
-  const body = new URLSearchParams({
-    action:        'requesttoken',
-    grant_type:    'refresh_token',
-    client_id:     CLIENT_ID,
-    client_secret: CLIENT_SECRET,
-    refresh_token: refresh,
+  const res = await fetch(API_PROXY, {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify({ action: 'refresh', refresh_token: refresh }),
   });
-
-  const res  = await fetch(TOKEN_URL, { method: 'POST', body });
-  const json = await res.json();
-  if (json.status !== 0) throw new Error('Refresh échoué : ' + JSON.stringify(json));
-  saveTokens(json.body);
-  return json.body.access_token;
+  const data = await res.json();
+  if (!res.ok) throw new Error('Refresh échoué : ' + JSON.stringify(data));
+  saveTokens(data);
+  return data.access_token;
 }
 
-/* ── Obtenir un token valide ── */
 async function validToken() {
   if (isTokenExpired()) return await refreshToken();
   return getAccessToken();
@@ -62,8 +55,6 @@ async function validToken() {
 
 /* ════════════════════════════════════════════════════════
    OAUTH FLOW
-   1. startOAuth()   → redirige vers Withings
-   2. handleCallback() → échange le code contre un token
    ════════════════════════════════════════════════════════ */
 export function startOAuth() {
   const params = new URLSearchParams({
@@ -81,30 +72,27 @@ export async function handleCallback() {
   const code   = params.get('code');
   if (!code) return false;
 
-  /* Nettoie l'URL sans recharger */
+  /* Nettoie l'URL */
   window.history.replaceState({}, document.title, window.location.pathname);
 
-  const body = new URLSearchParams({
-    action:        'requesttoken',
-    grant_type:    'authorization_code',
-    client_id:     CLIENT_ID,
-    client_secret: CLIENT_SECRET,
-    code,
-    redirect_uri:  REDIRECT_URI,
+  /* Échange via le proxy (le secret n'est jamais envoyé au navigateur) */
+  const res = await fetch(API_PROXY, {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify({ action: 'exchange_code', code, redirect_uri: REDIRECT_URI }),
   });
-
-  const res  = await fetch(TOKEN_URL, { method: 'POST', body });
-  const json = await res.json();
-  if (json.status !== 0) throw new Error('Token exchange échoué : ' + JSON.stringify(json));
-  saveTokens(json.body);
+  const data = await res.json();
+  if (!res.ok) throw new Error('Token exchange échoué : ' + JSON.stringify(data));
+  saveTokens(data);
   return true;
 }
 
 /* ════════════════════════════════════════════════════════
-   API CALLS
+   APPELS API DIRECTS (avec token Bearer)
+   Withings autorise CORS sur les endpoints de données,
+   uniquement le token endpoint nécessite un proxy.
    ════════════════════════════════════════════════════════ */
 
-/* ── Activité (pas) sur N jours ── */
 export async function getStepsHistory(days = 7) {
   const token   = await validToken();
   const endDate = new Date();
@@ -112,7 +100,6 @@ export async function getStepsHistory(days = 7) {
   startDate.setDate(startDate.getDate() - days + 1);
 
   const fmt = d => d.toISOString().slice(0, 10);
-
   const params = new URLSearchParams({
     action:       'getactivity',
     startdateymd: fmt(startDate),
@@ -120,7 +107,7 @@ export async function getStepsHistory(days = 7) {
     data_fields:  'steps,calories,distance',
   });
 
-  const res  = await fetch(`${API_URL}/v2/measure?${params}`, {
+  const res  = await fetch(`${WITHINGS_API}/v2/measure?${params}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   const json = await res.json();
@@ -128,7 +115,6 @@ export async function getStepsHistory(days = 7) {
   return json.body.activities || [];
 }
 
-/* ── Sommeil (durée par nuit) ── */
 export async function getSleepHistory(days = 7) {
   const token = await validToken();
   const end   = Math.floor(Date.now() / 1000);
@@ -141,7 +127,7 @@ export async function getSleepHistory(days = 7) {
     data_fields: 'nb_rem_episodes,sleep_score,deepsleepduration,lightsleepduration,remsleepduration,wakeupduration',
   });
 
-  const res  = await fetch(`${API_URL}/v2/sleep?${params}`, {
+  const res  = await fetch(`${WITHINGS_API}/v2/sleep?${params}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   const json = await res.json();
@@ -149,16 +135,15 @@ export async function getSleepHistory(days = 7) {
   return json.body.series || [];
 }
 
-/* ── Mesures corporelles (poids, FC) ── */
 export async function getMeasures() {
   const token = await validToken();
   const params = new URLSearchParams({
     action:   'getmeas',
-    meastype: '1,11', // 1=poids, 11=FC
+    meastype: '1,11',
     lastupdate: Math.floor((Date.now() - 30 * 86400_000) / 1000),
   });
 
-  const res  = await fetch(`${API_URL}/measure?${params}`, {
+  const res  = await fetch(`${WITHINGS_API}/measure?${params}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   const json = await res.json();
@@ -178,7 +163,6 @@ export async function getMeasures() {
   return { weight, heartrate };
 }
 
-/* ── Aujourd'hui ── */
 export async function getTodaySteps() {
   const data = await getStepsHistory(1);
   return data.length > 0 ? (data[0].steps || 0) : 0;
