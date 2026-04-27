@@ -2,6 +2,133 @@
    COMPONENTS.CSS — Cards, boutons, badges, inputs, sections
    ════════════════════════════════════════════════════════ */
 
+/* ════════════════════
+   LOCK SCREEN
+════════════════════ */
+#lock-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: #07060f;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: lockFadeIn 0.4s var(--ease) both;
+}
+#lock-screen.lock-exit {
+  animation: lockFadeOut 0.4s var(--ease) both;
+}
+
+@keyframes lockFadeIn  { from { opacity: 0; } to { opacity: 1; } }
+@keyframes lockFadeOut { from { opacity: 1; } to { opacity: 0; transform: scale(1.03); } }
+
+.lock-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 2rem 1rem;
+}
+
+.lock-avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--violet), var(--indigo));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  font-weight: 700;
+  box-shadow: 0 0 0 3px rgba(124,77,255,0.25), 0 0 32px rgba(124,77,255,0.2);
+  margin-bottom: 0.25rem;
+}
+
+.lock-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.lock-sub {
+  font-size: 0.78rem;
+  color: var(--muted);
+  font-weight: 400;
+  margin-top: -0.5rem;
+}
+
+/* ── Points indicateurs ── */
+.lock-dots {
+  display: flex;
+  gap: 1rem;
+  margin: 0.5rem 0;
+}
+.ldot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid rgba(124,77,255,0.5);
+  background: transparent;
+  transition: background 0.15s var(--ease), border-color 0.15s var(--ease), transform 0.15s var(--ease);
+}
+.ldot.filled {
+  background: var(--violet);
+  border-color: var(--violet);
+  transform: scale(1.15);
+  box-shadow: 0 0 10px rgba(124,77,255,0.5);
+}
+
+/* Shake animation */
+.lock-dots.shake {
+  animation: lockShake 0.45s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+@keyframes lockShake {
+  10%, 90% { transform: translateX(-2px); }
+  20%, 80% { transform: translateX(4px); }
+  30%, 50%, 70% { transform: translateX(-6px); }
+  40%, 60% { transform: translateX(6px); }
+}
+
+/* ── Message d'erreur ── */
+.lock-error {
+  font-size: 0.72rem;
+  color: #f87171;
+  min-height: 1.2em;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+}
+
+/* ── Pavé numérique ── */
+.lock-pad {
+  display: grid;
+  grid-template-columns: repeat(3, 72px);
+  gap: 0.65rem;
+  margin-top: 0.5rem;
+}
+
+.lkey {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  border: 1px solid rgba(124,77,255,0.2);
+  background: rgba(124,77,255,0.07);
+  color: var(--white);
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.3rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s var(--ease);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+}
+.lkey:hover    { background: rgba(124,77,255,0.18); border-color: rgba(124,77,255,0.45); }
+.lkey:active,
+.lkey.pressed  { background: rgba(124,77,255,0.35); transform: scale(0.93); }
+.lkey-empty    { background: transparent; border-color: transparent; cursor: default; pointer-events: none; }
+
 /* ── Card ── */
 .card {
   background: var(--glass-bg);

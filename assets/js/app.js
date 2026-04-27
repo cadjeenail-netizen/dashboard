@@ -3,6 +3,7 @@
    Initialise tous les modules et gère le score global
    ════════════════════════════════════════════════════════ */
 
+import { initLock }    from './lock.js';
 import { initClock }   from './clock.js';
 import { initMood, getMoodScore }     from './mood.js';
 import { initHabits, getHabitsScore } from './habits.js';
@@ -80,4 +81,8 @@ function init() {
 }
 
 /* Lance quand le DOM est prêt */
-document.addEventListener('DOMContentLoaded', init);
+document.addEventListener('DOMContentLoaded', () => {
+  /* L'écran de verrouillage s'affiche en premier.
+     Le dashboard ne s'initialise qu'après déverrouillage. */
+  initLock(init);
+});
