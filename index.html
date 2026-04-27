@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mon Univers — Dashboard</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="assets/css/main.css" />
+  <link rel="stylesheet" href="assets/css/components.css" />
+  <link rel="stylesheet" href="assets/css/animations.css" />
+</head>
+<body>
+
+  <!-- Étoiles CSS -->
+  <div class="stars" aria-hidden="true">
+    <div class="stars-layer stars-sm"></div>
+    <div class="stars-layer stars-md"></div>
+    <div class="stars-layer stars-lg"></div>
+  </div>
+
+  <!-- Grain overlay -->
+  <div class="grain" aria-hidden="true"></div>
+
+  <!-- ════════════════════════════════════════
+       HEADER
+  ════════════════════════════════════════ -->
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="header-left">
+        <h1 class="site-title">Mon <span class="gradient-text">Univers</span></h1>
+        <p class="header-date" id="header-date">Chargement…</p>
+      </div>
+      <div class="header-right">
+        <div class="header-clock" id="header-clock">00:00:00</div>
+        <div class="avatar">N</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ════════════════════════════════════════
+       GREETING CARD (pleine largeur)
+  ════════════════════════════════════════ -->
+  <main class="main-content">
+    <section class="greeting-card card fade-in" style="--delay:.05s">
+      <div class="greeting-left">
+        <p class="greeting-label">Bienvenue</p>
+        <h2 class="greeting-text" id="greeting-text">Bonjour 👋</h2>
+        <p class="greeting-sub" id="greeting-sub">Que ta journée soit aussi belle que tu le mérites.</p>
+      </div>
+      <div class="greeting-right">
+        <svg class="score-ring" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+          <circle class="ring-track" cx="60" cy="60" r="50" />
+          <circle class="ring-fill" cx="60" cy="60" r="50" id="score-ring-fill" />
+          <text class="ring-value" x="60" y="64" text-anchor="middle" id="score-value">—</text>
+          <text class="ring-label-svg" x="60" y="80" text-anchor="middle">Score</text>
+        </svg>
+      </div>
+    </section>
+
+    <!-- ════════════════════════════════════════
+         GRID PRINCIPALE
+    ════════════════════════════════════════ -->
+    <div class="dashboard-grid">
+
+      <!-- ── 1. MÉTÉO ── -->
+      <article class="card fade-in" style="--delay:.1s">
+        <div class="card-header">
+          <span class="card-title">Météo</span>
+          <span class="card-badge badge-cyan">Saint-Denis, La Réunion</span>
+        </div>
+        <div class="weather-main">
+          <span class="weather-icon">⛅</span>
+          <span class="weather-temp mono">27°</span>
+        </div>
+        <p class="weather-desc">Partiellement nuageux</p>
+        <div class="weather-stats">
+          <div class="weather-stat">
+            <span class="ws-label">Ressenti</span>
+            <span class="ws-val mono">29°</span>
+          </div>
+          <div class="weather-stat">
+            <span class="ws-label">Humidité</span>
+            <span class="ws-val mono">72%</span>
+          </div>
+          <div class="weather-stat">
+            <span class="ws-label">Vent</span>
+            <span class="ws-val mono">18 km/h</span>
+          </div>
+          <div class="weather-stat">
+            <span class="ws-label">UV</span>
+            <span class="ws-val mono">8</span>
+          </div>
+        </div>
+      </article>
+
+      <!-- ── 2. HUMEUR ── -->
+      <article class="card fade-in" style="--delay:.15s" id="mood-card">
+        <div class="card-header">
+          <span class="card-title">Humeur</span>
+          <span class="mood-saved-label" id="mood-saved-label"></span>
+        </div>
+        <div class="mood-picker" id="mood-picker">
+          <button class="mood-btn" data-mood="1" data-label="Difficile" title="Difficile">😔</button>
+          <button class="mood-btn" data-mood="2" data-label="Neutre"    title="Neutre">😐</button>
+          <button class="mood-btn" data-mood="3" data-label="Bien"      title="Bien">🙂</button>
+          <button class="mood-btn" data-mood="4" data-label="Super"     title="Super">😄</button>
+          <button class="mood-btn" data-mood="5" data-label="Incroyable" title="Incroyable">🔥</button>
+        </div>
+        <textarea
+          class="journal-input"
+          id="journal-input"
+          placeholder="Quelques mots sur ta journée…"
+          rows="4"
+        ></textarea>
+        <button class="btn btn-primary btn-sm" id="journal-save-btn">Sauvegarder</button>
+      </article>
+
+      <!-- ── 3. AGENDA ── -->
+      <article class="card fade-in" style="--delay:.2s">
+        <div class="card-header">
+          <span class="card-title">Agenda</span>
+          <span class="card-badge badge-violet">Aujourd'hui</span>
+        </div>
+        <div class="timeline">
+          <div class="tl-item">
+            <div class="tl-dot dot-cyan"></div>
+            <div class="tl-line"></div>
+            <div class="tl-content">
+              <span class="tl-time mono">09:00</span>
+              <span class="tl-title">Révision des objectifs</span>
+              <span class="tl-sub">Planification hebdomadaire</span>
+            </div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-dot dot-violet"></div>
+            <div class="tl-line"></div>
+            <div class="tl-content">
+              <span class="tl-time mono">14:30</span>
+              <span class="tl-title">Session de travail</span>
+              <span class="tl-sub">Projet principal · 2h</span>
+            </div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-dot dot-pink"></div>
+            <div class="tl-line tl-line-last"></div>
+            <div class="tl-content">
+              <span class="tl-time mono">19:00</span>
+              <span class="tl-title">Sport &amp; récupération</span>
+              <span class="tl-sub">Running · 5 km</span>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- ── 4. HABITUDES (2 colonnes) ── -->
+      <article class="card card-wide fade-in" style="--delay:.25s" id="habits-card">
+        <div class="card-header">
+          <span class="card-title">Habitudes</span>
+          <span class="habits-score-label" id="habits-score-label">0 / 35</span>
+        </div>
+        <div class="habits-global-bar">
+          <div class="habits-global-fill" id="habits-global-fill"></div>
+        </div>
+        <div class="habits-list" id="habits-list">
+          <!-- Généré par habits.js -->
+        </div>
+      </article>
+
+      <!-- ── 5. OBJECTIFS ── -->
+      <article class="card fade-in" style="--delay:.3s" id="goals-card">
+        <div class="card-header">
+          <span class="card-title">Objectifs</span>
+        </div>
+        <div class="goals-list" id="goals-list">
+          <!-- Généré par goals.js -->
+        </div>
+      </article>
+
+      <!-- ── 6. FINANCES (2 colonnes) ── -->
+      <article class="card card-wide fade-in" style="--delay:.35s" id="finance-card">
+        <div class="card-header">
+          <span class="card-title">Finances</span>
+          <span class="card-badge badge-mint">Avril 2026</span>
+        </div>
+        <div class="finance-boxes" id="finance-boxes">
+          <!-- Généré par finance.js -->
+        </div>
+        <div class="transactions" id="transactions-list">
+          <!-- Généré par finance.js -->
+        </div>
+      </article>
+
+      <!-- ── 7. TÂCHES ── -->
+      <article class="card fade-in" style="--delay:.4s" id="todo-card">
+        <div class="card-header">
+          <span class="card-title">Tâches</span>
+          <span class="todo-count" id="todo-count">0 restante(s)</span>
+        </div>
+        <div class="todo-input-row">
+          <input
+            type="text"
+            class="todo-input"
+            id="todo-input"
+            placeholder="Nouvelle tâche…"
+            maxlength="80"
+          />
+          <button class="btn btn-primary btn-icon" id="todo-add-btn" title="Ajouter">+</button>
+        </div>
+        <ul class="todo-list" id="todo-list">
+          <!-- Généré par todo.js -->
+        </ul>
+      </article>
+
+    </div><!-- /dashboard-grid -->
+
+    <!-- ── 8. CITATION (pleine largeur) ── -->
+    <section class="card quote-card fade-in" style="--delay:.45s" id="quote-card">
+      <div class="quote-bg-mark">"</div>
+      <blockquote class="quote-text" id="quote-text">
+        Le succès n'est pas final, l'échec n'est pas fatal : c'est le courage de continuer qui compte.
+      </blockquote>
+      <div class="quote-footer">
+        <cite class="quote-author" id="quote-author">Winston Churchill</cite>
+        <button class="btn btn-ghost btn-sm" id="quote-refresh-btn">↻ Nouvelle</button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Scripts (modules ES6) -->
+  <script type="module" src="assets/js/app.js"></script>
+</body>
+</html>
