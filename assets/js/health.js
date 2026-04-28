@@ -286,6 +286,20 @@ function renderKpis(stepsData, sleepData, measures) {
   if (wEl) wEl.textContent = lastWeight !== '—' ? `${lastWeight} kg` : '—';
 }
 
+/* ── Créé un dégradé vertical pour les barres ── */
+function barGrad(id, hex) {
+  const canvas = document.getElementById(id);
+  if (!canvas) return hex;
+  const [r,g,b] = [1,3,5].map(i => parseInt(hex.slice(i,i+2),16));
+  const ctx = canvas.getContext('2d');
+  const h = canvas.offsetHeight || 200;
+  const g2 = ctx.createLinearGradient(0, 0, 0, h);
+  g2.addColorStop(0,   `rgba(${r},${g},${b},0.95)`);
+  g2.addColorStop(0.6, `rgba(${r},${g},${b},0.55)`);
+  g2.addColorStop(1,   `rgba(${r},${g},${b},0.1)`);
+  return g2;
+}
+
 /* ── Graphique pas ── */
 function renderStepsChart(data) {
   destroyChart('hc-steps');
@@ -293,17 +307,31 @@ function renderStepsChart(data) {
   const labels = data.map(d => fmtDate(d.date));
   const values = data.map(d => d.steps || 0);
 
+  /* Dégradé violet → cyan selon objectif */
+  const bgs = values.map(v => v >= 10000 ? barGrad('hc-steps', '#00d4ff') : barGrad('hc-steps', '#7c4dff'));
+
   charts['steps'] = new Chart('hc-steps', {
     type: 'bar',
     data: { labels, datasets: [{
       data: values,
-      backgroundColor: values.map(v => v >= 10000 ? 'rgba(79,142,247,0.8)' : 'rgba(79,142,247,0.4)'),
-      borderColor:     COLORS.blue,
-      borderWidth: 1, borderRadius: 5, borderSkipped: false,
-      hoverBackgroundColor: COLORS.blue,
+      backgroundColor: bgs,
+      borderColor: values.map(v => v >= 10000 ? '#00d4ff' : '#7c4dff'),
+      borderWidth: 1,
+      borderRadius: 12,
+      borderSkipped: false,
+      hoverBackgroundColor: '#a78bfa',
+      barThickness: 'flex',
+      maxBarThickness: 42,
     }]},
-    options: chartOpts({ y: { ...SCALE.y, ticks: { ...SCALE.y.ticks, callback: v => v >= 1000 ? (v/1000)+'k' : v } },
-      tooltip: { callbacks: { label: ctx => `${ctx.parsed.y.toLocaleString('fr-FR')} pas`, afterLabel: ctx => ctx.parsed.y >= 10000 ? '✅ Objectif atteint' : `${(10000 - ctx.parsed.y).toLocaleString('fr-FR')} restants` }}
+    options: chartOpts({
+      y: {
+        ...SCALE.y,
+        ticks: { ...SCALE.y.ticks, callback: v => v >= 1000 ? (v/1000)+'k' : v }
+      },
+      tooltip: { callbacks: {
+        label: ctx => `${ctx.parsed.y.toLocaleString('fr-FR')} pas`,
+        afterLabel: ctx => ctx.parsed.y >= 10000 ? '✅ Objectif atteint' : `${(10000 - ctx.parsed.y).toLocaleString('fr-FR')} pas restants`
+      }}
     }),
   });
 }
@@ -327,14 +355,14 @@ function renderSleepChart(data) {
   charts['sleep'] = new Chart('hc-sleep', {
     type: 'bar',
     data: { labels, datasets: [
-      { label:'Profond', data:deep,  backgroundColor:'rgba(91,79,207,0.8)', borderRadius:4, stack:'s' },
-      { label:'Léger',   data:light, backgroundColor:'rgba(168,85,247,0.6)', borderRadius:4, stack:'s' },
-      { label:'REM',     data:rem,   backgroundColor:'rgba(206,147,216,0.5)', borderRadius:4, stack:'s' },
+      { label:'Profond', data:deep,  backgroundColor:'rgba(124,77,255,0.85)', borderRadius:6, borderSkipped:false, stack:'s', maxBarThickness:40 },
+      { label:'Léger',   data:light, backgroundColor:'rgba(168,85,247,0.65)', borderRadius:6, borderSkipped:false, stack:'s', maxBarThickness:40 },
+      { label:'REM',     data:rem,   backgroundColor:'rgba(0,212,255,0.55)',   borderRadius:6, borderSkipped:false, stack:'s', maxBarThickness:40 },
     ]},
     options: chartOpts({
       stacked: true,
       tooltip: { callbacks: { label: ctx => `${ctx.dataset.label} : ${ctx.parsed.y}h` } },
-      legend: { display: true, labels: { color:'rgba(255,255,255,0.4)', boxWidth:10, font:{size:10} } },
+      legend: { display: true, labels: { color:'rgba(255,255,255,0.55)', boxWidth:10, font:{size:11}, padding:12 } },
     }),
   });
 }
@@ -353,9 +381,17 @@ function renderHRChart(data) {
   charts['hr'] = new Chart('hc-hr', {
     type: 'line',
     data: { labels, datasets: [{
-      data: values, borderColor: COLORS.pink, borderWidth:2,
-      pointBackgroundColor: COLORS.pink, pointRadius:3, tension:0.4,
-      fill:true, backgroundColor: hexGrad('hc-hr', '#f472b6', 0.25),
+      data: values,
+      borderColor: '#f472b6',
+      borderWidth: 3,
+      pointBackgroundColor: '#fff',
+      pointBorderColor: '#f472b6',
+      pointBorderWidth: 2,
+      pointRadius: 5,
+      pointHoverRadius: 8,
+      tension: 0.45,
+      fill: true,
+      backgroundColor: hexGrad('hc-hr', '#f472b6', 0.35),
     }]},
     options: chartOpts({ tooltip: { callbacks: { label: ctx => `${ctx.parsed.y} bpm` } } }),
   });
@@ -375,9 +411,17 @@ function renderWeightChart(data) {
   charts['weight'] = new Chart('hc-weight', {
     type: 'line',
     data: { labels, datasets: [{
-      data: values, borderColor: COLORS.green, borderWidth:2,
-      pointBackgroundColor: COLORS.green, pointRadius:3, tension:0.4,
-      fill:true, backgroundColor: hexGrad('hc-weight', '#34d399', 0.2),
+      data: values,
+      borderColor: '#00f5a0',
+      borderWidth: 3,
+      pointBackgroundColor: '#fff',
+      pointBorderColor: '#00f5a0',
+      pointBorderWidth: 2,
+      pointRadius: 5,
+      pointHoverRadius: 8,
+      tension: 0.45,
+      fill: true,
+      backgroundColor: hexGrad('hc-weight', '#00f5a0', 0.3),
     }]},
     options: chartOpts({ tooltip: { callbacks: { label: ctx => `${ctx.parsed.y} kg` } } }),
   });
