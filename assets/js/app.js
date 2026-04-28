@@ -12,6 +12,8 @@ import { initTodo }    from './todo.js';
 import { initGoals, getGoalsScore }   from './goals.js';
 import { initFinance } from './finance.js';
 import { initQuote }   from './quote.js';
+import { initSettings, applyTheme } from './settings.js';
+import { get } from './storage.js';
 
 /* ── Gradient SVG pour le score ring ── */
 function injectRingGradient() {
@@ -73,6 +75,7 @@ function init() {
   initGoals();
   initFinance();
   initQuote();
+  initSettings();
 
   /* Score initial */
   updateScoreRing(computeScore());
@@ -84,6 +87,9 @@ function init() {
 
 /* Lance quand le DOM est prêt */
 document.addEventListener('DOMContentLoaded', () => {
+  /* Applique le thème avant tout pour éviter le flash visuel */
+  applyTheme(get('settings_theme', 'cosmos'));
+
   /* L'écran de verrouillage s'affiche en premier.
      Le dashboard ne s'initialise qu'après déverrouillage. */
   initLock(init);
