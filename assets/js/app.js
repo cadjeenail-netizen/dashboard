@@ -6,7 +6,6 @@
 import { initLock }    from './lock.js';
 import { initHealth }  from './health.js';
 import { initClock }   from './clock.js';
-import { initMood, getMoodScore }     from './mood.js';
 import { initHabits, getHabitsScore } from './habits.js';
 import { initTodo }    from './todo.js';
 import { initGoals, getGoalsScore }   from './goals.js';
@@ -15,6 +14,7 @@ import { initQuote }   from './quote.js';
 import { initWeather } from './weather.js';
 import { initAgenda }  from './agenda.js';
 import { initSettings, applyTheme } from './settings.js';
+import { initSync } from './sync.js';
 import { get } from './storage.js';
 
 /* ── Gradient SVG pour le score ring ── */
@@ -71,7 +71,6 @@ function init() {
   injectRingGradient();
   initClock();
   initHealth();
-  initMood();
   initHabits();
   initTodo();
   initGoals();
@@ -80,12 +79,12 @@ function init() {
   initWeather();
   initAgenda();
   initSettings();
+  initSync();
 
   /* Score initial */
   updateScoreRing(computeScore());
 
   /* Recalcul du score quand humeur ou habitudes changent */
-  window.addEventListener('mood-changed',    () => updateScoreRing(computeScore()));
   window.addEventListener('habits-changed',  () => updateScoreRing(computeScore()));
 }
 

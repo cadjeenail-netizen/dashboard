@@ -8,7 +8,7 @@
 import { get, set } from './storage.js';
 
 const DEFAULT_PIN    = '1234';
-const SESSION_FLAG   = 'sw_sess'; // clé sessionStorage (effacée à la fermeture de l'onglet)
+const SESSION_FLAG   = 'dashboard_vie_unlocked'; // clé localStorage (persiste entre les sessions)
 
 /* ── SHA-256 via Web Crypto (async, natif, aucune dépendance) ── */
 async function sha256(text) {
@@ -18,10 +18,15 @@ async function sha256(text) {
 
 /* ── Session déverrouillée ? ── */
 function isUnlocked() {
-  return sessionStorage.getItem(SESSION_FLAG) === '1';
+  return localStorage.getItem(SESSION_FLAG) === '1';
 }
 function markUnlocked() {
-  sessionStorage.setItem(SESSION_FLAG, '1');
+  localStorage.setItem(SESSION_FLAG, '1');
+}
+/* Permet de verrouiller manuellement depuis les paramètres */
+export function lockDashboard() {
+  localStorage.removeItem(SESSION_FLAG);
+  location.reload();
 }
 
 /* ── Initialisation du hash par défaut au premier lancement ── */

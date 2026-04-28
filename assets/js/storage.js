@@ -28,6 +28,8 @@ export function get(key, fallback = null) {
 export function set(key, value) {
   try {
     localStorage.setItem(PREFIX + key, JSON.stringify(value));
+    /* Notifie le module sync qu'une donnée a changé */
+    window.dispatchEvent(new Event('storage-changed'));
   } catch (e) {
     console.warn('[storage] Écriture échouée :', e);
   }

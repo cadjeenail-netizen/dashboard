@@ -5,6 +5,8 @@
 
 import { get, set, remove } from './storage.js';
 import { isConnected as withingsConnected, startOAuth, disconnect as withingsDisconnect } from './withings.js';
+import { lockDashboard } from './lock.js';
+import { pushToCloud, pullFromCloud } from './sync.js';
 
 /* ── Constantes ── */
 const VERSION = '1.2.0';
@@ -202,14 +204,24 @@ function buildPanel() {
           <span id="integ-withings"></span>
         </div>
         <div class="settings-row">
-          <span class="label">Airtable</span>
-          <span id="integ-airtable"></span>
+          <span class="label">Supabase Sync</span>
+          <span id="integ-supabase"></span>
         </div>
         <div class="settings-row">
           <span class="label">Météo</span>
-          <span class="value">Open-Meteo (GPS)</span>
+          <span class="value">Open-Meteo (gratuit)</span>
         </div>
-        <button class="settings-btn ghost full" id="airtable-config">Configurer Airtable</button>
+        <button class="settings-btn ghost full" id="supabase-config">Configurer Supabase</button>
+        <div class="settings-btn-row" style="margin-top:.5rem">
+          <button class="settings-btn ghost" id="supabase-pull">⬇ Restaurer depuis cloud</button>
+          <button class="settings-btn ghost" id="supabase-push">⬆ Sauver vers cloud</button>
+        </div>
+      </div>
+
+      <!-- VERROUILLER -->
+      <div class="settings-section">
+        <h3><span class="icon">🔒</span> Sécurité</h3>
+        <button class="settings-btn danger full" id="lock-now-btn">Verrouiller le dashboard</button>
       </div>
 
       <!-- 8. À PROPOS -->
@@ -512,29 +524,43 @@ function populateData() {
   };
 }
 
-function populateAirtable() {
-  const integEl = document.getElementById('integ-airtable');
-  const cfg = get('airtable_config', null);
-  const connected = !!(cfg && cfg.token && cfg.baseId);
+function populateSupabase() {
+  const integEl = document.getElementById('integ-supabase');
+  if (!integEl) return;
+  const cfg = get('supabase_config', null);
+  const connected = !!(cfg?.url && cfg?.key);
   integEl.innerHTML = connected
-    ? `<span class="status-pill connected">● ${cfg.baseId.slice(0, 8)}…</span>`
+    ? `<span class="status-pill connected">● Connecté</span>`
     : `<span class="status-pill disconnected">● Non configuré</span>`;
 
-  document.getElementById('airtable-config').onclick = () => {
-    const token = prompt('Personal Access Token Airtable (laissez vide pour effacer)', cfg?.token || '');
-    if (token === null) return;
-    if (!token.trim()) {
-      remove('airtable_config');
-      populateAirtable();
-      flash('Airtable déconnecté');
+  document.getElementById('supabase-config')?.addEventListener('click', () => {
+    const url = prompt('URL Supabase (ex: https://xxx.supabase.co)', cfg?.url || '');
+    if (url === null) return;
+    if (!url.trim()) {
+      remove('supabase_config');
+      populateSupabase();
+      flash('Supabase déconnecté');
       return;
     }
-    const baseId = prompt('Base ID Airtable (commence par "app...")', cfg?.baseId || '');
-    if (!baseId) return;
-    set('airtable_config', { token: token.trim(), baseId: baseId.trim() });
-    populateAirtable();
-    flash('Airtable configuré ✓');
-  };
+    const key = prompt('Anon Key Supabase', cfg?.key || '');
+    if (!key) return;
+    set('supabase_config', { url: url.trim(), key: key.trim() });
+    populateSupabase();
+    flash('Supabase configuré ✓');
+  }, { once: true });
+
+  document.getElementById('supabase-push')?.addEventListener('click', async () => {
+    flash('Sauvegarde…');
+    await pushToCloud();
+    flash('Sauvé dans le cloud ✓');
+  }, { once: true });
+
+  document.getElementById('supabase-pull')?.addEventListener('click', async () => {
+    flash('Restauration…');
+    const ok = await pullFromCloud();
+    if (ok) { flash('Restauré ✓ — Rechargement…'); setTimeout(() => location.reload(), 800); }
+    else flash('Aucune donnée cloud trouvée', 'error');
+  }, { once: true });
 }
 
 /* ════════════════════════════════════════════════════════
@@ -609,7 +635,12 @@ export function initSettings() {
   populateSectionToggles();
   populateNotifications();
   populateData();
-  populateAirtable();
+  populateSupabase();
+
+  /* Bouton verrouiller */
+  document.getElementById('lock-now-btn')?.addEventListener('click', () => {
+    confirm('Verrouiller ?', 'Tu devras saisir ton PIN pour revenir.', lockDashboard);
+  });
 
   /* Applique préférences dashboard */
   applyVisibility();
