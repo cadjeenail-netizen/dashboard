@@ -103,40 +103,12 @@
       </article>
 
       <!-- ── 3. AGENDA ── -->
-      <article class="card fade-in" style="--delay:.2s">
+      <article class="card fade-in" style="--delay:.2s" id="agenda-card">
         <div class="card-header">
           <span class="card-title">Agenda</span>
-          <span class="card-badge badge-violet">Aujourd'hui</span>
+          <button class="agenda-add-btn" id="agenda-add-btn" title="Ajouter un événement">+ Ajouter</button>
         </div>
-        <div class="timeline">
-          <div class="tl-item">
-            <div class="tl-dot dot-cyan"></div>
-            <div class="tl-line"></div>
-            <div class="tl-content">
-              <span class="tl-time mono">09:00</span>
-              <span class="tl-title">Révision des objectifs</span>
-              <span class="tl-sub">Planification hebdomadaire</span>
-            </div>
-          </div>
-          <div class="tl-item">
-            <div class="tl-dot dot-violet"></div>
-            <div class="tl-line"></div>
-            <div class="tl-content">
-              <span class="tl-time mono">14:30</span>
-              <span class="tl-title">Session de travail</span>
-              <span class="tl-sub">Projet principal · 2h</span>
-            </div>
-          </div>
-          <div class="tl-item">
-            <div class="tl-dot dot-pink"></div>
-            <div class="tl-line tl-line-last"></div>
-            <div class="tl-content">
-              <span class="tl-time mono">19:00</span>
-              <span class="tl-title">Sport &amp; récupération</span>
-              <span class="tl-sub">Running · 5 km</span>
-            </div>
-          </div>
-        </div>
+        <div class="timeline" id="agenda-timeline"></div>
       </article>
 
       <!-- ── 4. HABITUDES (2 colonnes) ── -->

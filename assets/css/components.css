@@ -889,3 +889,77 @@
   background: #0e0c1a;
   color: #fff;
 }
+
+/* ── Agenda éditable ── */
+.agenda-add-btn {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  color: var(--white);
+  font-size: .8rem;
+  padding: .25rem .6rem;
+  cursor: pointer;
+  font-family: var(--font-ui);
+  transition: background .2s;
+}
+.agenda-add-btn:hover { background: var(--muted-3); }
+.tl-actions { display: flex; gap: .3rem; opacity: 0; transition: opacity .2s; }
+.tl-item:hover .tl-actions { opacity: 1; }
+.tl-btn-edit, .tl-btn-del {
+  background: transparent; border: none; cursor: pointer;
+  font-size: .85rem; padding: .1rem .2rem; border-radius: 4px;
+  line-height: 1;
+}
+.tl-btn-del:hover { background: rgba(229,57,53,.2); }
+.tl-btn-edit:hover { background: var(--muted-3); }
+
+/* ── Finances éditables ── */
+.fb-edit-hint {
+  display: block;
+  font-size: .7rem;
+  color: var(--muted);
+  margin-top: .2rem;
+  opacity: 0;
+  transition: opacity .2s;
+}
+.finance-box:hover .fb-edit-hint { opacity: 1; }
+.tx-del {
+  background: transparent; border: none; color: var(--muted);
+  font-size: 1rem; cursor: pointer; padding: 0 .2rem;
+  transition: color .2s;
+}
+.tx-del:hover { color: #e57373; }
+.tx-add-btn {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  color: var(--white);
+  font-size: .8rem;
+  padding: .25rem .6rem;
+  cursor: pointer;
+  font-family: var(--font-ui);
+}
+.tx-add-btn:hover { background: var(--muted-3); }
+
+/* ── Objectifs éditables ── */
+.goal-add-btn {
+  width: 100%; margin-top: .6rem;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+  color: var(--white);
+  font-size: .85rem;
+  padding: .5rem;
+  cursor: pointer;
+  font-family: var(--font-ui);
+  transition: background .2s;
+}
+.goal-add-btn:hover { background: var(--muted-3); }
+.goal-edit-btn, .goal-del-btn {
+  background: transparent; border: none; cursor: pointer;
+  font-size: .8rem; padding: .1rem; border-radius: 4px; line-height: 1;
+  opacity: 0; transition: opacity .2s;
+}
+.goal-item:hover .goal-edit-btn,
+.goal-item:hover .goal-del-btn { opacity: 1; }
+.goal-del-btn:hover { background: rgba(229,57,53,.2); }
