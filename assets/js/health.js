@@ -164,10 +164,15 @@ function injectHealthSection() {
     <div class="health-toast" id="health-toast"></div>
   `;
 
-  /* Insérer avant la citation */
-  const quoteCard = document.querySelector('.quote-card');
-  if (quoteCard) quoteCard.parentNode.insertBefore(section, quoteCard);
-  else document.querySelector('.main-content').appendChild(section);
+  /* Insérer juste après le greeting (haut du dashboard) */
+  const greeting = document.querySelector('.greeting-card');
+  if (greeting && greeting.parentNode) {
+    greeting.parentNode.insertBefore(section, greeting.nextSibling);
+  } else {
+    const main = document.querySelector('.main-content');
+    if (main) main.insertBefore(section, main.firstChild);
+    else document.body.appendChild(section);
+  }
 }
 
 /* ════════════════════════════════════════════════════════
