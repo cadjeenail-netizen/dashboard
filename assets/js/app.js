@@ -12,6 +12,7 @@ import { initTodo }    from './todo.js';
 import { initGoals, getGoalsScore }   from './goals.js';
 import { initFinance } from './finance.js';
 import { initQuote }   from './quote.js';
+import { initWeather } from './weather.js';
 import { initSettings, applyTheme } from './settings.js';
 import { get } from './storage.js';
 
@@ -75,6 +76,7 @@ function init() {
   initGoals();
   initFinance();
   initQuote();
+  initWeather();
   initSettings();
 
   /* Score initial */

@@ -11,11 +11,12 @@ import {
 /* ── Chart.js présent via CDN dans index.html ── */
 
 const COLORS = {
-  blue:   '#4f8ef7',
-  green:  '#34d399',
+  blue:   '#7c4dff',
+  green:  '#00f5a0',
   purple: '#a855f7',
   pink:   '#f472b6',
-  orange: '#fb923c',
+  cyan:   '#00d4ff',
+  orange: '#ff6d00',
 };
 
 const TOOLTIP = {
