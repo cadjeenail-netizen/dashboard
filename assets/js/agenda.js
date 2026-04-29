@@ -80,24 +80,24 @@ function openModal(id) {
       <h3 style="color:var(--white);margin-bottom:1rem">${ev ? 'Modifier' : 'Nouvel événement'}</h3>
 
       <label style="color:var(--muted);font-size:.85rem;display:block;margin-bottom:.25rem">Heure</label>
-      <input id="am-time" type="time" value="${escAttr(ev?.time||'09:00')}" style="width:100%;background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:10px;color:#fff;padding:.55rem .8rem;font-family:var(--font-mono);font-size:.9rem;margin-bottom:.75rem;outline:none"/>
+      <input id="am-time" type="time" value="${escAttr(ev?.time||'09:00')}" style="width:100%;background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:10px;color:var(--white);padding:.55rem .8rem;font-family:var(--font-mono);font-size:.9rem;margin-bottom:.75rem;outline:none"/>
 
       <label style="color:var(--muted);font-size:.85rem;display:block;margin-bottom:.25rem">Titre</label>
-      <input id="am-title" value="${escAttr(ev?.title||'')}" placeholder="Ex: Réunion client" style="width:100%;background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:10px;color:#fff;padding:.55rem .8rem;font-family:var(--font-ui);font-size:.9rem;margin-bottom:.75rem;outline:none"/>
+      <input id="am-title" value="${escAttr(ev?.title||'')}" placeholder="Ex: Réunion client" style="width:100%;background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:10px;color:var(--white);padding:.55rem .8rem;font-family:var(--font-ui);font-size:.9rem;margin-bottom:.75rem;outline:none"/>
 
       <label style="color:var(--muted);font-size:.85rem;display:block;margin-bottom:.25rem">Sous-titre (optionnel)</label>
-      <input id="am-sub" value="${escAttr(ev?.sub||'')}" placeholder="Ex: Zoom · 1h" style="width:100%;background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:10px;color:#fff;padding:.55rem .8rem;font-family:var(--font-ui);font-size:.9rem;margin-bottom:.75rem;outline:none"/>
+      <input id="am-sub" value="${escAttr(ev?.sub||'')}" placeholder="Ex: Zoom · 1h" style="width:100%;background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:10px;color:var(--white);padding:.55rem .8rem;font-family:var(--font-ui);font-size:.9rem;margin-bottom:.75rem;outline:none"/>
 
       <label style="color:var(--muted);font-size:.85rem;display:block;margin-bottom:.5rem">Couleur</label>
       <div style="display:flex;gap:.5rem;margin-bottom:1.25rem">
         ${COLORS.map(c => {
           const cssColor = c.replace('dot-','');
-          return `<div data-color="${c}" style="width:26px;height:26px;border-radius:50%;background:var(--${cssColor});cursor:pointer;border:2px solid ${(ev?.color||'dot-cyan')===c?'#fff':'transparent'};transition:border .2s"></div>`;
+          return `<div data-color="${c}" style="width:26px;height:26px;border-radius:50%;background:var(--${cssColor});cursor:pointer;border:2px solid ${(ev?.color||'dot-cyan')===c?'var(--white)':'transparent'};transition:border .2s"></div>`;
         }).join('')}
       </div>
 
       <div style="display:flex;gap:.5rem">
-        <button id="am-cancel" style="flex:1;background:var(--glass-bg);border:1px solid var(--glass-border);color:#fff;padding:.6rem;border-radius:10px;cursor:pointer;font-family:var(--font-ui)">Annuler</button>
+        <button id="am-cancel" style="flex:1;background:var(--glass-bg);border:1px solid var(--glass-border);color:var(--white);padding:.6rem;border-radius:10px;cursor:pointer;font-family:var(--font-ui)">Annuler</button>
         <button id="am-save"   style="flex:1;background:var(--violet);border:none;color:#fff;padding:.6rem;border-radius:10px;cursor:pointer;font-weight:600;font-family:var(--font-ui)">Enregistrer</button>
       </div>
     </div>
@@ -109,7 +109,7 @@ function openModal(id) {
   modal.querySelectorAll('[data-color]').forEach(dot => {
     dot.addEventListener('click', () => {
       modal.querySelectorAll('[data-color]').forEach(d => d.style.borderColor = 'transparent');
-      dot.style.borderColor = '#fff';
+      dot.style.borderColor = 'var(--white)';
       selectedColor = dot.dataset.color;
     });
   });

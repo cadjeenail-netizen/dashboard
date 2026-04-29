@@ -95,7 +95,7 @@ function openModal(id) {
     <div style="background:var(--bg-2);border:1px solid var(--glass-border);border-radius:16px;padding:1.5rem;width:340px;max-width:90%">
       <h3 style="color:var(--white);margin-bottom:1rem">${goal ? 'Modifier' : 'Nouvel objectif'}</h3>
       <label style="color:var(--muted);font-size:.85rem;display:block;margin-bottom:.25rem">Nom</label>
-      <input id="gm-name" value="${escAttr(goal?.name||'')}" placeholder="Ex: Économies" style="width:100%;background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:10px;color:#fff;padding:.55rem .8rem;font-family:var(--font-ui);font-size:.9rem;margin-bottom:.75rem;outline:none"/>
+      <input id="gm-name" value="${escAttr(goal?.name||'')}" placeholder="Ex: Économies" style="width:100%;background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:10px;color:var(--white);padding:.55rem .8rem;font-family:var(--font-ui);font-size:.9rem;margin-bottom:.75rem;outline:none"/>
       <label style="color:var(--muted);font-size:.85rem;display:block;margin-bottom:.25rem">Progression : <span id="gm-pct-label">${Number(goal?.pct)||0}%</span></label>
       <input id="gm-pct" type="range" min="0" max="100" value="${Number(goal?.pct)||0}" style="width:100%;margin-bottom:.75rem;accent-color:var(--violet)"/>
       <label style="color:var(--muted);font-size:.85rem;display:block;margin-bottom:.5rem">Couleur</label>
@@ -103,7 +103,7 @@ function openModal(id) {
         ${COLORS.map(c => `<div data-color="${c}" style="width:28px;height:28px;border-radius:50%;background:var(--${COLOR_VARS[c]});cursor:pointer;border:2px solid ${(goal?.color||'goal-violet')===c?'#fff':'transparent'};transition:border .2s"></div>`).join('')}
       </div>
       <div style="display:flex;gap:.5rem">
-        <button id="gm-cancel" style="flex:1;background:var(--glass-bg);border:1px solid var(--glass-border);color:#fff;padding:.6rem;border-radius:10px;cursor:pointer;font-family:var(--font-ui)">Annuler</button>
+        <button id="gm-cancel" style="flex:1;background:var(--glass-bg);border:1px solid var(--glass-border);color:var(--white);padding:.6rem;border-radius:10px;cursor:pointer;font-family:var(--font-ui)">Annuler</button>
         <button id="gm-save"   style="flex:1;background:var(--violet);border:none;color:#fff;padding:.6rem;border-radius:10px;cursor:pointer;font-weight:600;font-family:var(--font-ui)">Enregistrer</button>
       </div>
     </div>

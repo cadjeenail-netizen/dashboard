@@ -129,16 +129,16 @@ function openTxModal(id) {
       </div>
 
       <label style="color:var(--muted);font-size:.85rem;display:block;margin-bottom:.25rem">Libellé</label>
-      <input id="tm-name" value="${escAttr(tx?.name||'')}" placeholder="Ex: Courses" style="width:100%;background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:10px;color:#fff;padding:.55rem .8rem;font-family:var(--font-ui);font-size:.9rem;margin-bottom:.75rem;outline:none"/>
+      <input id="tm-name" value="${escAttr(tx?.name||'')}" placeholder="Ex: Courses" style="width:100%;background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:10px;color:var(--white);padding:.55rem .8rem;font-family:var(--font-ui);font-size:.9rem;margin-bottom:.75rem;outline:none"/>
 
       <label style="color:var(--muted);font-size:.85rem;display:block;margin-bottom:.25rem">Montant (négatif = dépense)</label>
-      <input id="tm-amount" type="number" step="0.01" value="${escAttr(tx?.amount||'')}" placeholder="Ex: -67.30 ou +500" style="width:100%;background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:10px;color:#fff;padding:.55rem .8rem;font-family:var(--font-mono);font-size:.9rem;margin-bottom:.75rem;outline:none"/>
+      <input id="tm-amount" type="number" step="0.01" value="${escAttr(tx?.amount||'')}" placeholder="Ex: -67.30 ou +500" style="width:100%;background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:10px;color:var(--white);padding:.55rem .8rem;font-family:var(--font-mono);font-size:.9rem;margin-bottom:.75rem;outline:none"/>
 
       <label style="color:var(--muted);font-size:.85rem;display:block;margin-bottom:.25rem">Date</label>
-      <input id="tm-date" type="date" value="${escAttr(tx?.rawDate||new Date().toISOString().slice(0,10))}" style="width:100%;background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:10px;color:#fff;padding:.55rem .8rem;font-family:var(--font-ui);font-size:.9rem;margin-bottom:1.25rem;outline:none"/>
+      <input id="tm-date" type="date" value="${escAttr(tx?.rawDate||new Date().toISOString().slice(0,10))}" style="width:100%;background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:10px;color:var(--white);padding:.55rem .8rem;font-family:var(--font-ui);font-size:.9rem;margin-bottom:1.25rem;outline:none"/>
 
       <div style="display:flex;gap:.5rem">
-        <button id="tm-cancel" style="flex:1;background:var(--glass-bg);border:1px solid var(--glass-border);color:#fff;padding:.6rem;border-radius:10px;cursor:pointer;font-family:var(--font-ui)">Annuler</button>
+        <button id="tm-cancel" style="flex:1;background:var(--glass-bg);border:1px solid var(--glass-border);color:var(--white);padding:.6rem;border-radius:10px;cursor:pointer;font-family:var(--font-ui)">Annuler</button>
         <button id="tm-save"   style="flex:1;background:var(--violet);border:none;color:#fff;padding:.6rem;border-radius:10px;cursor:pointer;font-weight:600;font-family:var(--font-ui)">Enregistrer</button>
       </div>
     </div>

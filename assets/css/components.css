@@ -515,10 +515,11 @@
 
 .tl-item {
   display: grid;
-  grid-template-columns: 12px 16px 1fr;
+  grid-template-columns: 12px 16px 1fr auto;
   grid-template-rows: auto 1fr;
   column-gap: 0.75rem;
-  align-items: start;
+  align-items: center;
+  padding: .25rem 0;
 }
 
 .tl-dot {
@@ -903,15 +904,33 @@
   transition: background .2s;
 }
 .agenda-add-btn:hover { background: var(--muted-3); }
-.tl-actions { display: flex; gap: .3rem; opacity: 0; transition: opacity .2s; }
+.tl-actions {
+  grid-column: 4;
+  grid-row: 1 / span 2;
+  align-self: center;
+  display: flex;
+  gap: .25rem;
+  opacity: .35;
+  transition: opacity .2s;
+}
 .tl-item:hover .tl-actions { opacity: 1; }
 .tl-btn-edit, .tl-btn-del {
-  background: transparent; border: none; cursor: pointer;
-  font-size: .85rem; padding: .1rem .2rem; border-radius: 4px;
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  font-size: .9rem;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
   line-height: 1;
+  color: var(--white);
+  transition: background .2s, border-color .2s;
 }
-.tl-btn-del:hover { background: rgba(229,57,53,.2); }
-.tl-btn-edit:hover { background: var(--muted-3); }
+.tl-btn-edit:hover { background: var(--glass-bg); border-color: var(--glass-border); }
+.tl-btn-del:hover  { background: rgba(229,57,53,.18); border-color: rgba(229,57,53,.35); }
 
 /* ── Finances éditables ── */
 .fb-edit-hint {
