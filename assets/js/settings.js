@@ -577,10 +577,21 @@ function populateNotifications() {
 
 function populateData() {
   document.getElementById('data-export').onclick = () => {
+    /* Cles sensibles a NE PAS exporter (tokens auth, secrets) */
+    const SENSITIVE_KEYS = [
+      'dashboard_vie_auth_session',   // JWT Supabase
+      'dashboard_vie_w_access',        // Token Withings
+      'dashboard_vie_w_refresh',       // Refresh Withings
+      'dashboard_vie_w_exp',           // Expiration Withings
+      'dashboard_vie_pin_h2',          // Hash du PIN
+      'dashboard_vie_unlocked',        // Flag de session deverrouillee
+    ];
     const dump = {};
     for (let i = 0; i < localStorage.length; i++) {
       const k = localStorage.key(i);
-      if (k.startsWith('dashboard_vie_')) dump[k] = localStorage.getItem(k);
+      if (k.startsWith('dashboard_vie_') && !SENSITIVE_KEYS.includes(k)) {
+        dump[k] = localStorage.getItem(k);
+      }
     }
     const blob = new Blob([JSON.stringify(dump, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);

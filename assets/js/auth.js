@@ -127,8 +127,27 @@ export function signInWithProvider(provider) {
   location.href = url;
 }
 
+/* ── Recupere l'utilisateur verifie cote serveur via /auth/v1/user ──
+   Au lieu de decoder le JWT en clair (non verifie cryptographiquement),
+   on demande a Supabase qui valide la signature et renvoie l'user reel. */
+async function fetchVerifiedUser(access_token) {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+      headers: {
+        'Authorization': `Bearer ${access_token}`,
+        'apikey':        SUPABASE_ANON_KEY,
+      },
+    });
+    if (!res.ok) return null;
+    const u = await res.json();
+    return { id: u.id, email: u.email };
+  } catch {
+    return null;
+  }
+}
+
 /* ── Récupère access_token + refresh_token depuis l'URL hash après callback OAuth ── */
-function captureOAuthCallback() {
+async function captureOAuthCallback() {
   if (!location.hash || !location.hash.includes('access_token=')) return null;
   const params = new URLSearchParams(location.hash.slice(1));
   const access_token  = params.get('access_token');
@@ -136,15 +155,12 @@ function captureOAuthCallback() {
   const expires_in    = parseInt(params.get('expires_in') || '3600', 10);
   if (!access_token) return null;
 
-  /* Décode le JWT pour extraire l'utilisateur (payload base64) */
-  let user = null;
-  try {
-    const payload = JSON.parse(atob(access_token.split('.')[1]));
-    user = { id: payload.sub, email: payload.email };
-  } catch {}
-
   /* Nettoie l'URL pour pas garder les tokens visibles */
   history.replaceState(null, '', location.pathname + location.search);
+
+  /* Recupere l'user via Supabase (signature JWT validee cote serveur) */
+  const user = await fetchVerifiedUser(access_token);
+  if (!user) return null; /* Token invalide → on ignore le callback */
 
   return saveSession({ access_token, refresh_token, expires_in, user });
 }
@@ -205,8 +221,8 @@ function buildAuthScreen() {
    Affiche l'écran si non connecté, refresh si expiré
    ════════════════════════════════════════════════════════ */
 export async function initAuth() {
-  /* Capture le retour OAuth (Google/Apple) si présent dans l'URL */
-  captureOAuthCallback();
+  /* Capture le retour OAuth (Google/GitHub) si présent dans l'URL */
+  await captureOAuthCallback();
 
   /* Tente un refresh si token expiré mais refresh_token présent */
   const s = getSession();
