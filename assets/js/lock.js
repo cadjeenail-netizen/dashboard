@@ -39,11 +39,17 @@ async function ensurePinStored() {
 
 /* ── Construction de l'écran ── */
 function buildLockScreen() {
+  const profile = get('settings_profile', null);
+  const avatarStyle = profile?.picture
+    ? `style="background-image:url(${profile.picture});background-size:cover;background-position:center"`
+    : '';
+  const avatarText = profile?.picture ? '' : (profile?.avatar || 'N');
+
   const el = document.createElement('div');
   el.id = 'lock-screen';
   el.innerHTML = `
     <div class="lock-inner">
-      <div class="lock-avatar">N</div>
+      <div class="lock-avatar" ${avatarStyle}>${avatarText}</div>
       <p class="lock-title">Nebula</p>
       <p class="lock-sub">Entrez votre code PIN</p>
 

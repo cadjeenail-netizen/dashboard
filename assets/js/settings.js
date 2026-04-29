@@ -66,7 +66,29 @@ export function applyLightMode(enabled) {
 function applyProfile() {
   const p = get('settings_profile', DEFAULT_PROFILE);
   const avatar = document.querySelector('.avatar');
-  if (avatar) avatar.textContent = p.avatar || 'N';
+  if (!avatar) return;
+  if (p.picture) {
+    avatar.style.backgroundImage = `url(${p.picture})`;
+    avatar.style.backgroundSize = 'cover';
+    avatar.style.backgroundPosition = 'center';
+    avatar.textContent = '';
+  } else {
+    avatar.style.backgroundImage = '';
+    avatar.textContent = p.avatar || 'N';
+  }
+  /* Avatar de l'écran de verrouillage */
+  const lockAvatar = document.querySelector('.lock-avatar');
+  if (lockAvatar) {
+    if (p.picture) {
+      lockAvatar.style.backgroundImage = `url(${p.picture})`;
+      lockAvatar.style.backgroundSize = 'cover';
+      lockAvatar.style.backgroundPosition = 'center';
+      lockAvatar.textContent = '';
+    } else {
+      lockAvatar.style.backgroundImage = '';
+      lockAvatar.textContent = p.avatar || 'N';
+    }
+  }
 }
 
 /* ════════════════════════════════════════════════════════
@@ -147,8 +169,17 @@ function buildPanel() {
           <input class="settings-input" id="profile-name" style="max-width:200px" />
         </div>
         <div class="settings-row">
-          <span class="label">Avatar (1 char)</span>
+          <span class="label">Avatar (lettre)</span>
           <input class="settings-input" id="profile-avatar" maxlength="2" style="max-width:80px;text-align:center" />
+        </div>
+        <div class="settings-row">
+          <span class="label">Photo de profil</span>
+          <div style="display:flex;gap:.5rem;align-items:center">
+            <img id="profile-pic-preview" alt="" style="width:36px;height:36px;border-radius:50%;object-fit:cover;display:none;border:1px solid var(--glass-border)"/>
+            <input type="file" accept="image/*" id="profile-pic-input" style="display:none"/>
+            <button type="button" class="settings-btn ghost" id="profile-pic-btn" style="padding:.4rem .7rem;font-size:.8rem">Choisir</button>
+            <button type="button" class="settings-btn ghost" id="profile-pic-clear" style="padding:.4rem .7rem;font-size:.8rem;display:none">×</button>
+          </div>
         </div>
         <div class="settings-row">
           <span class="label">Localisation</span>
@@ -380,13 +411,61 @@ function populateProfile() {
   document.getElementById('profile-rate').value = p.dailyRate;
   document.getElementById('profile-currency').value = p.currency;
 
+  /* Aperçu photo de profil */
+  const preview = document.getElementById('profile-pic-preview');
+  const clearBtn = document.getElementById('profile-pic-clear');
+  if (p.picture) {
+    preview.src = p.picture;
+    preview.style.display = '';
+    clearBtn.style.display = '';
+  }
+
+  /* Bouton "Choisir" → ouvre file picker */
+  document.getElementById('profile-pic-btn').onclick = () => {
+    document.getElementById('profile-pic-input').click();
+  };
+
+  /* Lecture du fichier en base64 */
+  document.getElementById('profile-pic-input').onchange = e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 800 * 1024) {
+      flash('Image trop grande (max 800 Ko)');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      preview.src = reader.result;
+      preview.style.display = '';
+      clearBtn.style.display = '';
+      preview.dataset.pending = reader.result;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  /* Bouton × → supprime la photo */
+  clearBtn.onclick = () => {
+    preview.src = '';
+    preview.style.display = 'none';
+    clearBtn.style.display = 'none';
+    preview.dataset.pending = '';
+    delete preview.dataset.removed;
+    preview.dataset.removed = '1';
+  };
+
   document.getElementById('profile-save').onclick = () => {
+    const current = get('settings_profile', DEFAULT_PROFILE);
+    let picture = current.picture || null;
+    if (preview.dataset.pending) picture = preview.dataset.pending;
+    if (preview.dataset.removed === '1') picture = null;
+
     const newP = {
       name: document.getElementById('profile-name').value || 'N',
       avatar: document.getElementById('profile-avatar').value || 'N',
       location: document.getElementById('profile-location').value || 'Le Tampon',
       dailyRate: Number(document.getElementById('profile-rate').value) || 80,
       currency: document.getElementById('profile-currency').value,
+      picture,
     };
     set('settings_profile', newP);
     applyProfile();
