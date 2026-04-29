@@ -124,7 +124,7 @@ export async function getStepsHistory(days = 7) {
     action:       'getactivity',
     startdateymd: fmt(startDate),
     enddateymd:   fmt(endDate),
-    data_fields:  'steps,calories,distance,hr_average,hr_min,hr_max',
+    data_fields:  'steps,calories,distance',
   });
 
   const res  = await fetch(`${WITHINGS_API}/v2/measure?${params}`, {

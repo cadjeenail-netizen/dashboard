@@ -180,9 +180,12 @@ function injectHealthSection() {
    ÉTATS
    ════════════════════════════════════════════════════════ */
 function showConnectState() {
-  document.getElementById('health-connect-card').style.display = '';
+  document.getElementById('health-connect-card').style.display  = '';
   document.getElementById('health-loading').style.display       = 'none';
   document.getElementById('health-grid').style.display          = 'none';
+  /* Cache le bouton Deconnecter (sinon etat hybride si une render fail) */
+  const dis = document.getElementById('health-disconnect-btn');
+  if (dis) dis.style.display = 'none';
   setBadge(false);
 
   document.getElementById('withings-connect-btn')?.addEventListener('click', startOAuth);
@@ -232,15 +235,17 @@ async function loadAndRender(days = 7) {
     ]);
 
     showDataState();
-    renderKpis(stepsData, sleepData, measures);
-    renderStepsChart(stepsData);
-    renderSleepChart(sleepData);
-    renderHRChart(measures.heartrate);
-    renderWeightChart(measures.weight);
+
+    /* Chaque render dans son propre try/catch pour ne pas casser tout l'affichage */
+    try { renderKpis(stepsData, sleepData, measures); }      catch(e) { console.error('[health] renderKpis', e); }
+    try { renderStepsChart(stepsData); }                     catch(e) { console.error('[health] renderStepsChart', e); }
+    try { renderSleepChart(sleepData); }                     catch(e) { console.error('[health] renderSleepChart', e); }
+    try { renderHRChart(measures.heartrate || []); }         catch(e) { console.error('[health] renderHRChart', e); }
+    try { renderWeightChart(measures.weight || []); }        catch(e) { console.error('[health] renderWeightChart', e); }
     setupFilters();
 
   } catch (err) {
-    console.error('[health]', err);
+    console.error('[health] fatal', err);
     showConnectState();
   }
 }
