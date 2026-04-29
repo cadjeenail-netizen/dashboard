@@ -6,12 +6,22 @@
 
 const USER_ID = 'default'; /* Pas de multi-compte pour l'instant */
 
-/* ── Récupère la config depuis localStorage ── */
+/* ── Config Supabase hardcodée (clé anon publique, OK en frontend) ── */
+const DEFAULT_CFG = {
+  url: 'https://ueduodyudfvuiskpjzyy.supabase.co',
+  key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVlZHVvZHl1ZGZ2dWlza3Bqenl5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczODUwMjksImV4cCI6MjA5Mjk2MTAyOX0.7TqJREgzTT6cMgxQvemvVsZjtqwg35XPrU82xhvyE5s',
+};
+
+/* ── Récupère la config (override localStorage > défaut hardcodé) ── */
 function getCfg() {
   try {
     const raw = localStorage.getItem('dashboard_vie_supabase_config');
-    return raw ? JSON.parse(raw) : null;
-  } catch { return null; }
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed?.url && parsed?.key) return parsed;
+    }
+  } catch {}
+  return DEFAULT_CFG;
 }
 
 function isConfigured() {
