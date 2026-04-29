@@ -64,7 +64,10 @@ function updateScoreRing(score) {
 }
 
 /* ── Init ── */
-function init() {
+async function init() {
+  /* Pull cloud AVANT d'initialiser les modules pour avoir les bonnes données */
+  await initSync();
+
   injectRingGradient();
   initClock();
   initHealth();
@@ -76,7 +79,6 @@ function init() {
   initWeather();
   initAgenda();
   initSettings();
-  initSync();
 
   /* Score initial */
   updateScoreRing(computeScore());
