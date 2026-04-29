@@ -373,3 +373,40 @@ html[data-theme="lavender"] {
 #health-section.hidden-by-settings {
   display: none !important;
 }
+
+/* ════════════════════════════════════════════════════════
+   MODE CLAIR — overrides globaux
+   ════════════════════════════════════════════════════════ */
+html.light-mode {
+  --bg:          #f5f3ff;
+  --bg-2:        #ffffff;
+  --bg-3:        #ece9f8;
+  --white:       #1a1530;
+  --muted:       rgba(26,21,48,0.55);
+  --muted-2:     rgba(26,21,48,0.25);
+  --muted-3:     rgba(26,21,48,0.06);
+  --glass-bg:     rgba(255,255,255,0.6);
+  --glass-border: rgba(124,77,255,0.2);
+}
+html.light-mode body {
+  color: var(--white);
+}
+html.light-mode .stars,
+html.light-mode .grain {
+  display: none;
+}
+html.light-mode .card {
+  background: rgba(255,255,255,0.7);
+  border: 1px solid rgba(124,77,255,0.15);
+  box-shadow: 0 4px 20px rgba(124,77,255,0.06);
+}
+html.light-mode .settings-panel {
+  background: #ffffff;
+}
+html.light-mode .settings-header {
+  background: #ffffff;
+}
+html.light-mode .weather-city-select option {
+  background: #ffffff;
+  color: #1a1530;
+}

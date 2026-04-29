@@ -54,6 +54,12 @@ export function applyTheme(themeId) {
   set('settings_theme', valid);
 }
 
+/* ── Mode clair / sombre ── */
+export function applyLightMode(enabled) {
+  document.documentElement.classList.toggle('light-mode', !!enabled);
+  set('settings_light_mode', !!enabled);
+}
+
 /* ════════════════════════════════════════════════════════
    APPLIQUER LE PROFIL (header)
    ════════════════════════════════════════════════════════ */
@@ -97,7 +103,13 @@ function buildPanel() {
       <!-- 1. APPARENCE -->
       <div class="settings-section">
         <h3><span class="icon">🎨</span> Apparence</h3>
-        <p class="hint">Choisis ton thème de couleurs.</p>
+
+        <div class="settings-row">
+          <span class="label">Mode clair</span>
+          <div class="toggle-switch" id="light-mode-toggle"></div>
+        </div>
+
+        <p class="hint" style="margin-top:.75rem">Choisis ton thème de couleurs.</p>
         <div class="theme-grid" id="theme-grid"></div>
       </div>
 
@@ -306,6 +318,18 @@ function populateThemes() {
       applyTheme(c.dataset.theme);
     });
   });
+
+  /* Toggle mode clair */
+  const toggle = document.getElementById('light-mode-toggle');
+  if (toggle) {
+    const isLight = get('settings_light_mode', false);
+    toggle.classList.toggle('on', isLight);
+    toggle.addEventListener('click', () => {
+      const newState = !toggle.classList.contains('on');
+      toggle.classList.toggle('on', newState);
+      applyLightMode(newState);
+    });
+  }
 }
 
 function populateWithings() {

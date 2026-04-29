@@ -13,7 +13,7 @@ import { initFinance } from './finance.js';
 import { initQuote }   from './quote.js';
 import { initWeather } from './weather.js';
 import { initAgenda }  from './agenda.js';
-import { initSettings, applyTheme } from './settings.js';
+import { initSettings, applyTheme, applyLightMode } from './settings.js';
 import { initSync } from './sync.js';
 import { get } from './storage.js';
 
@@ -91,6 +91,7 @@ async function init() {
 document.addEventListener('DOMContentLoaded', () => {
   /* Applique le thème avant tout pour éviter le flash visuel */
   applyTheme(get('settings_theme', 'cosmos'));
+  applyLightMode(get('settings_light_mode', false));
 
   /* L'écran de verrouillage s'affiche en premier.
      Le dashboard ne s'initialise qu'après déverrouillage. */
