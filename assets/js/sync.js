@@ -12,15 +12,10 @@ const DEFAULT_CFG = {
   key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVlZHVvZHl1ZGZ2dWlza3Bqenl5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczODUwMjksImV4cCI6MjA5Mjk2MTAyOX0.7TqJREgzTT6cMgxQvemvVsZjtqwg35XPrU82xhvyE5s',
 };
 
-/* ── Récupère la config (override localStorage > défaut hardcodé) ── */
+/* ── Toujours utiliser la config hardcodée (override désactivé) ── */
 function getCfg() {
-  try {
-    const raw = localStorage.getItem('dashboard_vie_supabase_config');
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (parsed?.url && parsed?.key) return parsed;
-    }
-  } catch {}
+  /* Nettoie une éventuelle vieille config locale qui pourrait poser problème */
+  try { localStorage.removeItem('dashboard_vie_supabase_config'); } catch {}
   return DEFAULT_CFG;
 }
 
