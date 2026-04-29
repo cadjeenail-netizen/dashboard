@@ -41,14 +41,11 @@ function injectRingGradient() {
 
 /* ── Calcul du score global (0-100) ── */
 function computeScore() {
-  const mood    = getMoodScore();    // 1-5 ou null
-  const habits  = getHabitsScore();  // 0-100
-  const goals   = getGoalsScore();   // 0-100
+  const habits = getHabitsScore();  // 0-100
+  const goals  = getGoalsScore();   // 0-100
 
-  /* Pondération : humeur 30%, habitudes 40%, objectifs 30% */
-  const moodNorm = mood !== null ? ((mood - 1) / 4) * 100 : 50;
-  const score    = Math.round(moodNorm * 0.30 + habits * 0.40 + goals * 0.30);
-
+  /* Pondération : habitudes 50%, objectifs 50% */
+  const score = Math.round(habits * 0.50 + goals * 0.50);
   return Math.max(0, Math.min(100, score));
 }
 

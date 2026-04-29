@@ -31,6 +31,18 @@ function collectLocalData() {
   return data;
 }
 
+/* ── Headers communs pour Supabase REST ── */
+function headers(cfg, extra = {}) {
+  const h = {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${cfg.key}`,
+    ...extra,
+  };
+  /* Ancienne clé anon (jwt) → apikey header requis */
+  if (!cfg.key.startsWith('sb_publishable_')) h['apikey'] = cfg.key;
+  return h;
+}
+
 /* ── Pousse vers Supabase (upsert) ── */
 export async function pushToCloud() {
   if (!isConfigured()) return;
@@ -42,16 +54,12 @@ export async function pushToCloud() {
   };
 
   try {
-    await fetch(`${cfg.url}/rest/v1/dashboard_sync`, {
+    const res = await fetch(`${cfg.url}/rest/v1/dashboard_sync`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': cfg.key,
-        'Authorization': `Bearer ${cfg.key}`,
-        'Prefer': 'resolution=merge-duplicates',
-      },
+      headers: headers(cfg, { 'Prefer': 'resolution=merge-duplicates,return=minimal' }),
       body: JSON.stringify(payload),
     });
+    if (!res.ok) console.warn('[sync] Push erreur', res.status, await res.text());
   } catch (err) {
     console.warn('[sync] Push échoué :', err.message);
   }
@@ -65,13 +73,9 @@ export async function pullFromCloud() {
   try {
     const res = await fetch(
       `${cfg.url}/rest/v1/dashboard_sync?user_id=eq.${USER_ID}&select=data`,
-      {
-        headers: {
-          'apikey': cfg.key,
-          'Authorization': `Bearer ${cfg.key}`,
-        },
-      }
+      { headers: headers(cfg) }
     );
+    if (!res.ok) { console.warn('[sync] Pull erreur', res.status); return false; }
     const rows = await res.json();
     if (!rows.length || !rows[0].data) return false;
 
