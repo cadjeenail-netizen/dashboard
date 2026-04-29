@@ -3,6 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Content Security Policy : limite les domaines autorises pour scripts/styles/fetch -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com data:; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co https://wbsapi.withings.net https://account.withings.com https://api.open-meteo.com https://geocoding-api.open-meteo.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self' https://account.withings.com;">
+  <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
+
   <title>Nebula — Dashboard</title>
   <link rel="icon" type="image/svg+xml" href="assets/img/nebula-logo.svg" />
 

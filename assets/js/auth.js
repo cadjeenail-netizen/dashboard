@@ -4,6 +4,8 @@
    Session persistée en localStorage (JWT + refresh token)
    ════════════════════════════════════════════════════════ */
 
+import { escHtml } from './esc.js';
+
 const SUPABASE_URL      = 'https://ueduodyudfvuiskpjzyy.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVlZHVvZHl1ZGZ2dWlza3Bqenl5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczODUwMjksImV4cCI6MjA5Mjk2MTAyOX0.7TqJREgzTT6cMgxQvemvVsZjtqwg35XPrU82xhvyE5s';
 const SESSION_KEY       = 'dashboard_vie_auth_session';
@@ -237,7 +239,7 @@ export async function initAuth() {
       submitBtn.textContent = m === 'login' ? 'Se connecter' : 'Créer mon compte';
       passEl.autocomplete   = m === 'login' ? 'current-password' : 'new-password';
       errorEl.textContent = '';
-      hintEl.textContent  = m === 'register' ? 'Mot de passe : 6 caractères minimum.' : '';
+      hintEl.textContent  = m === 'register' ? 'Mot de passe : 12 caractères minimum, dont chiffres et lettres.' : '';
     }
 
     tabLogin.addEventListener('click',    () => setMode('login'));
@@ -259,9 +261,15 @@ export async function initAuth() {
         errorEl.textContent = 'Remplis tous les champs.';
         return;
       }
-      if (mode === 'register' && password.length < 6) {
-        errorEl.textContent = 'Mot de passe : 6 caractères minimum.';
-        return;
+      if (mode === 'register') {
+        if (password.length < 12) {
+          errorEl.textContent = 'Mot de passe : 12 caractères minimum.';
+          return;
+        }
+        if (!/[a-zA-Z]/.test(password) || !/\d/.test(password)) {
+          errorEl.textContent = 'Le mot de passe doit contenir au moins une lettre et un chiffre.';
+          return;
+        }
       }
 
       submitBtn.disabled    = true;
@@ -285,7 +293,7 @@ export async function initAuth() {
             el.querySelector('.auth-form').innerHTML = `
               <div class="auth-confirm-msg">
                 <span class="auth-confirm-icon">✉️</span>
-                <p>Un email de confirmation a été envoyé à <strong>${email}</strong>.</p>
+                <p>Un email de confirmation a été envoyé à <strong>${escHtml(email)}</strong>.</p>
                 <p>Confirme ton adresse puis reviens te connecter.</p>
                 <button class="auth-btn-primary" id="auth-back-login">Se connecter</button>
               </div>

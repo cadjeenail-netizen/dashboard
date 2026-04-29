@@ -3,6 +3,7 @@
    ════════════════════════════════════════════════════════ */
 
 import { get, set } from './storage.js';
+import { escHtml, escAttr } from './esc.js';
 
 const KEY = 'agenda_events';
 const COLORS = ['dot-cyan','dot-violet','dot-pink','dot-mint'];
@@ -34,17 +35,17 @@ function render() {
   tl.innerHTML = events.map((ev, i) => {
     const isLast = i === events.length - 1;
     return `
-      <div class="tl-item" data-id="${ev.id}">
-        <div class="tl-dot ${ev.color}"></div>
+      <div class="tl-item" data-id="${escAttr(ev.id)}">
+        <div class="tl-dot ${escAttr(ev.color)}"></div>
         ${isLast ? '' : '<div class="tl-line"></div>'}
         <div class="tl-content" style="flex:1">
-          <span class="tl-time mono">${ev.time}</span>
-          <span class="tl-title">${ev.title}</span>
-          ${ev.sub ? `<span class="tl-sub">${ev.sub}</span>` : ''}
+          <span class="tl-time mono">${escHtml(ev.time)}</span>
+          <span class="tl-title">${escHtml(ev.title)}</span>
+          ${ev.sub ? `<span class="tl-sub">${escHtml(ev.sub)}</span>` : ''}
         </div>
         <div class="tl-actions">
-          <button class="tl-btn-edit" data-id="${ev.id}" title="Modifier">✏️</button>
-          <button class="tl-btn-del"  data-id="${ev.id}" title="Supprimer">🗑</button>
+          <button class="tl-btn-edit" data-id="${escAttr(ev.id)}" title="Modifier">✏️</button>
+          <button class="tl-btn-del"  data-id="${escAttr(ev.id)}" title="Supprimer">🗑</button>
         </div>
       </div>
     `;
@@ -79,13 +80,13 @@ function openModal(id) {
       <h3 style="color:var(--white);margin-bottom:1rem">${ev ? 'Modifier' : 'Nouvel événement'}</h3>
 
       <label style="color:var(--muted);font-size:.85rem;display:block;margin-bottom:.25rem">Heure</label>
-      <input id="am-time" type="time" value="${ev?.time||'09:00'}" style="width:100%;background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:10px;color:#fff;padding:.55rem .8rem;font-family:var(--font-mono);font-size:.9rem;margin-bottom:.75rem;outline:none"/>
+      <input id="am-time" type="time" value="${escAttr(ev?.time||'09:00')}" style="width:100%;background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:10px;color:#fff;padding:.55rem .8rem;font-family:var(--font-mono);font-size:.9rem;margin-bottom:.75rem;outline:none"/>
 
       <label style="color:var(--muted);font-size:.85rem;display:block;margin-bottom:.25rem">Titre</label>
-      <input id="am-title" value="${ev?.title||''}" placeholder="Ex: Réunion client" style="width:100%;background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:10px;color:#fff;padding:.55rem .8rem;font-family:var(--font-ui);font-size:.9rem;margin-bottom:.75rem;outline:none"/>
+      <input id="am-title" value="${escAttr(ev?.title||'')}" placeholder="Ex: Réunion client" style="width:100%;background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:10px;color:#fff;padding:.55rem .8rem;font-family:var(--font-ui);font-size:.9rem;margin-bottom:.75rem;outline:none"/>
 
       <label style="color:var(--muted);font-size:.85rem;display:block;margin-bottom:.25rem">Sous-titre (optionnel)</label>
-      <input id="am-sub" value="${ev?.sub||''}" placeholder="Ex: Zoom · 1h" style="width:100%;background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:10px;color:#fff;padding:.55rem .8rem;font-family:var(--font-ui);font-size:.9rem;margin-bottom:.75rem;outline:none"/>
+      <input id="am-sub" value="${escAttr(ev?.sub||'')}" placeholder="Ex: Zoom · 1h" style="width:100%;background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:10px;color:#fff;padding:.55rem .8rem;font-family:var(--font-ui);font-size:.9rem;margin-bottom:.75rem;outline:none"/>
 
       <label style="color:var(--muted);font-size:.85rem;display:block;margin-bottom:.5rem">Couleur</label>
       <div style="display:flex;gap:.5rem;margin-bottom:1.25rem">

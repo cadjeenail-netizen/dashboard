@@ -3,6 +3,7 @@
    ════════════════════════════════════════════════════════ */
 
 import { get, set } from './storage.js';
+import { escHtml, escAttr } from './esc.js';
 
 const KEY = 'goals';
 const COLORS = ['goal-violet','goal-cyan','goal-mint','goal-pink'];
@@ -35,17 +36,17 @@ function render() {
 
   listEl.innerHTML = `
     ${goals.map(g => `
-      <div class="goal-item" data-id="${g.id}">
+      <div class="goal-item" data-id="${escAttr(g.id)}">
         <div class="goal-header">
-          <span class="goal-name">${g.name}</span>
+          <span class="goal-name">${escHtml(g.name)}</span>
           <div style="display:flex;align-items:center;gap:0.5rem">
-            <span class="goal-pct" style="color:var(--${COLOR_VARS[g.color]||'violet'})">${g.pct}%</span>
-            <button class="goal-edit-btn" data-id="${g.id}" title="Modifier">✏️</button>
-            <button class="goal-del-btn"  data-id="${g.id}" title="Supprimer">🗑</button>
+            <span class="goal-pct" style="color:var(--${COLOR_VARS[g.color]||'violet'})">${Number(g.pct)||0}%</span>
+            <button class="goal-edit-btn" data-id="${escAttr(g.id)}" title="Modifier">✏️</button>
+            <button class="goal-del-btn"  data-id="${escAttr(g.id)}" title="Supprimer">🗑</button>
           </div>
         </div>
         <div class="goal-track">
-          <div class="goal-fill ${g.color}" style="width:0%"></div>
+          <div class="goal-fill ${escAttr(g.color)}" style="width:0%"></div>
         </div>
       </div>
     `).join('')}
@@ -94,9 +95,9 @@ function openModal(id) {
     <div style="background:var(--bg-2);border:1px solid var(--glass-border);border-radius:16px;padding:1.5rem;width:340px;max-width:90%">
       <h3 style="color:var(--white);margin-bottom:1rem">${goal ? 'Modifier' : 'Nouvel objectif'}</h3>
       <label style="color:var(--muted);font-size:.85rem;display:block;margin-bottom:.25rem">Nom</label>
-      <input id="gm-name" value="${goal?.name||''}" placeholder="Ex: Économies" style="width:100%;background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:10px;color:#fff;padding:.55rem .8rem;font-family:var(--font-ui);font-size:.9rem;margin-bottom:.75rem;outline:none"/>
-      <label style="color:var(--muted);font-size:.85rem;display:block;margin-bottom:.25rem">Progression : <span id="gm-pct-label">${goal?.pct||0}%</span></label>
-      <input id="gm-pct" type="range" min="0" max="100" value="${goal?.pct||0}" style="width:100%;margin-bottom:.75rem;accent-color:var(--violet)"/>
+      <input id="gm-name" value="${escAttr(goal?.name||'')}" placeholder="Ex: Économies" style="width:100%;background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:10px;color:#fff;padding:.55rem .8rem;font-family:var(--font-ui);font-size:.9rem;margin-bottom:.75rem;outline:none"/>
+      <label style="color:var(--muted);font-size:.85rem;display:block;margin-bottom:.25rem">Progression : <span id="gm-pct-label">${Number(goal?.pct)||0}%</span></label>
+      <input id="gm-pct" type="range" min="0" max="100" value="${Number(goal?.pct)||0}" style="width:100%;margin-bottom:.75rem;accent-color:var(--violet)"/>
       <label style="color:var(--muted);font-size:.85rem;display:block;margin-bottom:.5rem">Couleur</label>
       <div style="display:flex;gap:.5rem;margin-bottom:1.25rem">
         ${COLORS.map(c => `<div data-color="${c}" style="width:28px;height:28px;border-radius:50%;background:var(--${COLOR_VARS[c]});cursor:pointer;border:2px solid ${(goal?.color||'goal-violet')===c?'#fff':'transparent'};transition:border .2s"></div>`).join('')}

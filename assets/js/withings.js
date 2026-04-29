@@ -56,21 +56,41 @@ async function validToken() {
 /* ════════════════════════════════════════════════════════
    OAUTH FLOW
    ════════════════════════════════════════════════════════ */
+/* Génère un state cryptographiquement aléatoire (anti-CSRF) */
+function generateState() {
+  const arr = new Uint8Array(16);
+  crypto.getRandomValues(arr);
+  return Array.from(arr).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 export function startOAuth() {
+  const state = generateState();
+  /* sessionStorage : effacé à la fermeture de l'onglet, isolé par origine */
+  sessionStorage.setItem('withings_oauth_state', state);
+
   const params = new URLSearchParams({
     response_type: 'code',
     client_id:     CLIENT_ID,
     redirect_uri:  REDIRECT_URI,
     scope:         'user.activity,user.sleepevents,user.metrics',
-    state:         'dashboard-vie-' + Date.now(),
+    state,
   });
   window.location.href = `https://account.withings.com/oauth2_user/authorize2?${params}`;
 }
 
 export async function handleCallback() {
-  const params = new URLSearchParams(window.location.search);
-  const code   = params.get('code');
+  const params      = new URLSearchParams(window.location.search);
+  const code        = params.get('code');
+  const returnedSt  = params.get('state');
   if (!code) return false;
+
+  /* Vérifie le state (anti-CSRF) AVANT de nettoyer l'URL */
+  const expectedState = sessionStorage.getItem('withings_oauth_state');
+  sessionStorage.removeItem('withings_oauth_state');
+  if (!expectedState || expectedState !== returnedSt) {
+    window.history.replaceState({}, document.title, window.location.pathname);
+    throw new Error('OAuth state invalide — tentative de CSRF bloquée.');
+  }
 
   /* Nettoie l'URL */
   window.history.replaceState({}, document.title, window.location.pathname);

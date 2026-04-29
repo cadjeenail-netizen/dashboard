@@ -3,6 +3,7 @@
    ════════════════════════════════════════════════════════ */
 
 import { get, set } from './storage.js';
+import { escHtml, escAttr } from './esc.js';
 
 const KEY_FINANCE = 'finance';
 const KEY_TX      = 'transactions';
@@ -82,14 +83,14 @@ function renderTransactions() {
       <button class="tx-add-btn" id="tx-add-btn">+ Ajouter</button>
     </div>
     ${txs.length ? txs.map(tx => `
-      <div class="tx-item" data-id="${tx.id}">
-        <span class="tx-icon">${tx.icon}</span>
+      <div class="tx-item" data-id="${escAttr(tx.id)}">
+        <span class="tx-icon">${escHtml(tx.icon)}</span>
         <div class="tx-info">
-          <span class="tx-name">${tx.name}</span>
-          <span class="tx-date">${tx.date}</span>
+          <span class="tx-name">${escHtml(tx.name)}</span>
+          <span class="tx-date">${escHtml(tx.date)}</span>
         </div>
         <span class="tx-amount ${tx.amount >= 0 ? 'tx-pos' : 'tx-neg'}">${tx.amount >= 0 ? '+' : ''}${fmt(tx.amount)}</span>
-        <button class="tx-del" data-id="${tx.id}" title="Supprimer">×</button>
+        <button class="tx-del" data-id="${escAttr(tx.id)}" title="Supprimer">×</button>
       </div>
     `).join('') : `<p style="color:var(--muted);text-align:center;font-size:.85rem;padding:.5rem 0">Aucune transaction</p>`}
   `;
@@ -128,13 +129,13 @@ function openTxModal(id) {
       </div>
 
       <label style="color:var(--muted);font-size:.85rem;display:block;margin-bottom:.25rem">Libellé</label>
-      <input id="tm-name" value="${tx?.name||''}" placeholder="Ex: Courses" style="width:100%;background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:10px;color:#fff;padding:.55rem .8rem;font-family:var(--font-ui);font-size:.9rem;margin-bottom:.75rem;outline:none"/>
+      <input id="tm-name" value="${escAttr(tx?.name||'')}" placeholder="Ex: Courses" style="width:100%;background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:10px;color:#fff;padding:.55rem .8rem;font-family:var(--font-ui);font-size:.9rem;margin-bottom:.75rem;outline:none"/>
 
       <label style="color:var(--muted);font-size:.85rem;display:block;margin-bottom:.25rem">Montant (négatif = dépense)</label>
-      <input id="tm-amount" type="number" step="0.01" value="${tx?.amount||''}" placeholder="Ex: -67.30 ou +500" style="width:100%;background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:10px;color:#fff;padding:.55rem .8rem;font-family:var(--font-mono);font-size:.9rem;margin-bottom:.75rem;outline:none"/>
+      <input id="tm-amount" type="number" step="0.01" value="${escAttr(tx?.amount||'')}" placeholder="Ex: -67.30 ou +500" style="width:100%;background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:10px;color:#fff;padding:.55rem .8rem;font-family:var(--font-mono);font-size:.9rem;margin-bottom:.75rem;outline:none"/>
 
       <label style="color:var(--muted);font-size:.85rem;display:block;margin-bottom:.25rem">Date</label>
-      <input id="tm-date" type="date" value="${tx?.rawDate||new Date().toISOString().slice(0,10)}" style="width:100%;background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:10px;color:#fff;padding:.55rem .8rem;font-family:var(--font-ui);font-size:.9rem;margin-bottom:1.25rem;outline:none"/>
+      <input id="tm-date" type="date" value="${escAttr(tx?.rawDate||new Date().toISOString().slice(0,10))}" style="width:100%;background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:10px;color:#fff;padding:.55rem .8rem;font-family:var(--font-ui);font-size:.9rem;margin-bottom:1.25rem;outline:none"/>
 
       <div style="display:flex;gap:.5rem">
         <button id="tm-cancel" style="flex:1;background:var(--glass-bg);border:1px solid var(--glass-border);color:#fff;padding:.6rem;border-radius:10px;cursor:pointer;font-family:var(--font-ui)">Annuler</button>
