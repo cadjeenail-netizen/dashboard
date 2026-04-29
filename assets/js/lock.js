@@ -44,7 +44,7 @@ function buildLockScreen() {
   el.innerHTML = `
     <div class="lock-inner">
       <div class="lock-avatar">N</div>
-      <p class="lock-title">Mon Univers</p>
+      <p class="lock-title">Nebula</p>
       <p class="lock-sub">Entrez votre code PIN</p>
 
       <div class="lock-dots" id="lock-dots">
