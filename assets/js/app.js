@@ -4,6 +4,7 @@
    ════════════════════════════════════════════════════════ */
 
 import { initLock }    from './lock.js';
+import { initAuth }    from './auth.js';
 import { initHealth }  from './health.js';
 import { initClock }   from './clock.js';
 import { initHabits, getHabitsScore } from './habits.js';
@@ -88,12 +89,12 @@ async function init() {
 }
 
 /* Lance quand le DOM est prêt */
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   /* Applique le thème avant tout pour éviter le flash visuel */
   applyTheme(get('settings_theme', 'cosmos'));
   applyLightMode(get('settings_light_mode', false));
 
-  /* L'écran de verrouillage s'affiche en premier.
-     Le dashboard ne s'initialise qu'après déverrouillage. */
+  /* 1. Auth compte → 2. PIN → 3. Dashboard */
+  await initAuth();
   initLock(init);
 });

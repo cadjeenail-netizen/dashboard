@@ -963,3 +963,183 @@
 .goal-item:hover .goal-edit-btn,
 .goal-item:hover .goal-del-btn { opacity: 1; }
 .goal-del-btn:hover { background: rgba(229,57,53,.2); }
+
+/* ════════════════════════════════════════════════════════
+   AUTH SCREEN — Écran de connexion / inscription
+   ════════════════════════════════════════════════════════ */
+#auth-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: lockFadeIn 0.45s var(--ease) both;
+}
+#auth-screen.auth-exit {
+  animation: lockFadeOut 0.38s var(--ease) both;
+}
+
+.auth-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 360px;
+  padding: 1.5rem;
+}
+
+.auth-logo {
+  width: 64px;
+  height: 64px;
+  margin-bottom: 0.25rem;
+  filter: drop-shadow(0 0 20px rgba(124,77,255,0.5));
+}
+
+.auth-brand {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.8rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #c084fc, #7c4dff, #00d4ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.auth-tagline {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin: 0 0 1rem;
+}
+
+/* Onglets login / register */
+.auth-tabs {
+  display: flex;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  padding: 3px;
+  gap: 3px;
+  margin-bottom: 1rem;
+}
+
+.auth-tab {
+  flex: 1;
+  padding: 0.5rem 1.2rem;
+  border: none;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--muted);
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s var(--ease);
+  white-space: nowrap;
+}
+.auth-tab.active {
+  background: rgba(124,77,255,0.25);
+  color: var(--white);
+  box-shadow: 0 0 12px rgba(124,77,255,0.2);
+}
+
+/* Formulaire */
+.auth-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.auth-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  color: var(--white);
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.2s var(--ease), box-shadow 0.2s;
+  box-sizing: border-box;
+}
+.auth-input:focus {
+  border-color: rgba(124,77,255,0.6);
+  box-shadow: 0 0 0 3px rgba(124,77,255,0.12);
+}
+.auth-input::placeholder { color: var(--muted); }
+
+.auth-error {
+  font-size: 0.78rem;
+  color: #f87171;
+  min-height: 1.1em;
+  text-align: center;
+  margin: 0;
+}
+
+.auth-btn-primary {
+  width: 100%;
+  padding: 0.8rem;
+  background: linear-gradient(135deg, #7c4dff, #5b4fcf);
+  border: none;
+  border-radius: 12px;
+  color: #fff;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s var(--ease);
+  box-shadow: 0 4px 20px rgba(124,77,255,0.35);
+  letter-spacing: 0.01em;
+}
+.auth-btn-primary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 24px rgba(124,77,255,0.45);
+}
+.auth-btn-primary:active:not(:disabled) { transform: translateY(0); }
+.auth-btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.auth-hint {
+  font-size: 0.75rem;
+  color: var(--muted);
+  text-align: center;
+  min-height: 1em;
+  margin: 0;
+}
+
+/* Confirmation email */
+.auth-confirm-msg {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  text-align: center;
+  padding: 1rem 0;
+}
+.auth-confirm-icon { font-size: 2.5rem; }
+.auth-confirm-msg p {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin: 0;
+  line-height: 1.5;
+}
+.auth-confirm-msg strong { color: var(--white); }
+
+/* Light mode overrides */
+html.light-mode .auth-input {
+  background: rgba(0,0,0,0.04);
+  border-color: rgba(0,0,0,0.12);
+  color: var(--white);
+}
+html.light-mode .auth-tabs {
+  background: rgba(0,0,0,0.04);
+  border-color: rgba(0,0,0,0.1);
+}
+html.light-mode .auth-tab.active {
+  background: rgba(124,77,255,0.15);
+}

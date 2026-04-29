@@ -7,6 +7,7 @@ import { get, set, remove } from './storage.js';
 import { isConnected as withingsConnected, startOAuth, disconnect as withingsDisconnect } from './withings.js';
 import { lockDashboard } from './lock.js';
 import { pushToCloud, pullFromCloud } from './sync.js';
+import { signOut, getUserEmail } from './auth.js';
 
 /* ── Constantes ── */
 const VERSION = '1.2.0';
@@ -261,10 +262,15 @@ function buildPanel() {
         </div>
       </div>
 
-      <!-- VERROUILLER -->
+      <!-- VERROUILLER / DÉCONNEXION -->
       <div class="settings-section">
         <h3><span class="icon">🔒</span> Sécurité</h3>
-        <button class="settings-btn danger full" id="lock-now-btn">Verrouiller le dashboard</button>
+        <div class="settings-row">
+          <span class="label">Compte</span>
+          <span class="value" id="auth-account-email" style="font-size:.78rem;max-width:160px;overflow:hidden;text-overflow:ellipsis">—</span>
+        </div>
+        <button class="settings-btn full" id="lock-now-btn">Verrouiller le dashboard</button>
+        <button class="settings-btn danger full" id="signout-btn" style="margin-top:.5rem">Se déconnecter</button>
       </div>
 
       <!-- 8. À PROPOS -->
@@ -740,9 +746,22 @@ export function initSettings() {
   populateData();
   populateSupabase();
 
+  /* Email du compte connecté */
+  const emailDisplay = document.getElementById('auth-account-email');
+  if (emailDisplay) emailDisplay.textContent = getUserEmail() || '—';
+
   /* Bouton verrouiller */
   document.getElementById('lock-now-btn')?.addEventListener('click', () => {
     confirm('Verrouiller ?', 'Tu devras saisir ton PIN pour revenir.', lockDashboard);
+  });
+
+  /* Bouton déconnexion */
+  document.getElementById('signout-btn')?.addEventListener('click', () => {
+    confirm(
+      'Se déconnecter ?',
+      'Tu devras te reconnecter avec ton email et mot de passe.',
+      signOut
+    );
   });
 
   /* Applique préférences dashboard */
