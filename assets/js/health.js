@@ -261,14 +261,18 @@ function renderKpis(stepsData, sleepData, measures) {
   }, 0);
   const avgSleep = sleepData.length ? (totalSleepSec / sleepData.length / 3600).toFixed(1) : '—';
 
-  const lastHR     = measures.heartrate.slice(-1)[0]?.val ?? '—';
+  /* FC moyenne sur la periode (au lieu de juste la derniere mesure) */
+  const hrVals = measures.heartrate.map(h => h.val).filter(v => v > 0);
+  const avgHR  = hrVals.length
+    ? Math.round(hrVals.reduce((a,b) => a + b, 0) / hrVals.length)
+    : '—';
   const lastWeight = measures.weight.slice(-1)[0]?.val ?? '—';
 
   el.innerHTML = `
     <div class="h-kpi"><span class="h-kpi-label">Pas aujourd'hui</span><span class="h-kpi-val" style="color:#4f8ef7">${todaySteps.toLocaleString('fr-FR')}</span></div>
     <div class="h-kpi"><span class="h-kpi-label">Moy. quotidienne</span><span class="h-kpi-val" style="color:#4f8ef7">${avgSteps.toLocaleString('fr-FR')}</span></div>
     <div class="h-kpi"><span class="h-kpi-label">Sommeil moyen</span><span class="h-kpi-val" style="color:#a855f7">${avgSleep}h</span></div>
-    <div class="h-kpi"><span class="h-kpi-label">Fréq. cardiaque</span><span class="h-kpi-val" style="color:#f472b6">${lastHR}${lastHR !== '—' ? ' bpm' : ''}</span></div>
+    <div class="h-kpi"><span class="h-kpi-label">FC moyenne</span><span class="h-kpi-val" style="color:#f472b6">${avgHR}${avgHR !== '—' ? ' bpm' : ''}</span></div>
     <div class="h-kpi"><span class="h-kpi-label">Poids</span><span class="h-kpi-val" style="color:#34d399">${lastWeight}${lastWeight !== '—' ? ' kg' : ''}</span></div>
   `;
 

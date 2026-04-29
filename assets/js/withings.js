@@ -124,7 +124,7 @@ export async function getStepsHistory(days = 7) {
     action:       'getactivity',
     startdateymd: fmt(startDate),
     enddateymd:   fmt(endDate),
-    data_fields:  'steps,calories,distance',
+    data_fields:  'steps,calories,distance,hr_average,hr_min,hr_max',
   });
 
   const res  = await fetch(`${WITHINGS_API}/v2/measure?${params}`, {
@@ -155,31 +155,71 @@ export async function getSleepHistory(days = 7) {
   return json.body.series || [];
 }
 
-export async function getMeasures() {
+/**
+ * Mesures sante :
+ * - Poids : via /measure?action=getmeas (mesures ponctuelles balance)
+ * - FC moyenne : via /v2/measure?action=getactivity (tracker continu)
+ *   La FC ponctuelle (meastype=11) ne marche que pour ECG/spot, donc
+ *   on prend hr_average de l'activite quotidienne, qui correspond a ce
+ *   que l'app Withings affiche comme "frequence cardiaque moyenne".
+ */
+export async function getMeasures(days = 30) {
   const token = await validToken();
-  const params = new URLSearchParams({
-    action:   'getmeas',
-    meastype: '1,11',
-    lastupdate: Math.floor((Date.now() - 30 * 86400_000) / 1000),
-  });
 
-  const res  = await fetch(`${WITHINGS_API}/measure?${params}`, {
+  /* ── Poids ── */
+  const measParams = new URLSearchParams({
+    action:    'getmeas',
+    meastype:  '1',
+    lastupdate: Math.floor((Date.now() - days * 86400_000) / 1000),
+  });
+  const measPromise = fetch(`${WITHINGS_API}/measure?${measParams}`, {
     headers: { Authorization: `Bearer ${token}` },
+  }).then(r => r.json()).catch(() => ({ status: -1 }));
+
+  /* ── FC quotidienne via activity ── */
+  const endDate   = new Date();
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - days + 1);
+  const fmt = d => d.toISOString().slice(0,10);
+  const actParams = new URLSearchParams({
+    action:       'getactivity',
+    startdateymd: fmt(startDate),
+    enddateymd:   fmt(endDate),
+    data_fields:  'hr_average,hr_min,hr_max',
   });
-  const json = await res.json();
-  if (json.status !== 0) return { weight: [], heartrate: [] };
+  const actPromise = fetch(`${WITHINGS_API}/v2/measure?${actParams}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  }).then(r => r.json()).catch(() => ({ status: -1 }));
 
-  const weight    = [];
-  const heartrate = [];
+  const [measJson, actJson] = await Promise.all([measPromise, actPromise]);
 
-  for (const group of (json.body.measuregrps || [])) {
-    const date = new Date(group.date * 1000).toISOString().slice(0,10);
-    for (const m of group.measures) {
-      const val = m.value * Math.pow(10, m.unit);
-      if (m.type === 1)  weight.push({ date, val: Math.round(val * 10) / 10 });
-      if (m.type === 11) heartrate.push({ date, val: Math.round(val) });
+  /* Parse poids */
+  const weight = [];
+  if (measJson.status === 0) {
+    for (const group of (measJson.body?.measuregrps || [])) {
+      const date = new Date(group.date * 1000).toISOString().slice(0,10);
+      for (const m of group.measures) {
+        const val = m.value * Math.pow(10, m.unit);
+        if (m.type === 1) weight.push({ date, val: Math.round(val * 10) / 10 });
+      }
     }
   }
+
+  /* Parse FC */
+  const heartrate = [];
+  if (actJson.status === 0) {
+    for (const a of (actJson.body?.activities || [])) {
+      if (a.hr_average && a.hr_average > 0) {
+        heartrate.push({
+          date: a.date,
+          val:  Math.round(a.hr_average),
+          min:  a.hr_min || null,
+          max:  a.hr_max || null,
+        });
+      }
+    }
+  }
+
   return { weight, heartrate };
 }
 
