@@ -1016,6 +1016,69 @@
   margin: 0 0 1rem;
 }
 
+/* OAuth (Google, Apple) */
+.auth-oauth {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 0.85rem;
+}
+
+.auth-oauth-btn {
+  width: 100%;
+  padding: 0.7rem 1rem;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  color: var(--white);
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.88rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  transition: all 0.2s var(--ease);
+}
+.auth-oauth-btn:hover {
+  background: rgba(255,255,255,0.1);
+  border-color: rgba(255,255,255,0.2);
+  transform: translateY(-1px);
+}
+.auth-oauth-btn svg { flex-shrink: 0; }
+
+/* Séparateur "ou" */
+.auth-divider {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0.4rem 0 1rem;
+}
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--glass-border);
+}
+.auth-divider span {
+  font-size: 0.72rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+html.light-mode .auth-oauth-btn {
+  background: rgba(0,0,0,0.04);
+  border-color: rgba(0,0,0,0.12);
+}
+html.light-mode .auth-oauth-btn:hover {
+  background: rgba(0,0,0,0.07);
+}
+
 /* Onglets login / register */
 .auth-tabs {
   display: flex;
