@@ -59,6 +59,8 @@ export function applyTheme(themeId) {
 export function applyLightMode(enabled) {
   document.documentElement.classList.toggle('light-mode', !!enabled);
   set('settings_light_mode', !!enabled);
+  /* Notifie les modules (charts notamment) pour qu'ils se redessinent */
+  window.dispatchEvent(new Event('theme-changed'));
 }
 
 /* ════════════════════════════════════════════════════════

@@ -20,21 +20,36 @@ const COLORS = {
   orange: '#ff6d00',
 };
 
-const TOOLTIP = {
-  backgroundColor: 'rgba(10,12,24,0.95)',
-  borderColor:     'rgba(255,255,255,0.08)',
-  borderWidth:     1,
-  titleColor:      '#eef2ff',
-  bodyColor:       'rgba(255,255,255,0.6)',
-  padding:         12,
-  cornerRadius:    10,
-  displayColors:   false,
-};
+/* Detecte le mode clair pour adapter les couleurs des charts */
+function isLight() { return document.documentElement.classList.contains('light-mode'); }
 
-const SCALE = {
-  x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: 'rgba(255,255,255,0.35)', font:{size:10} }, border:{display:false} },
-  y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: 'rgba(255,255,255,0.35)', font:{size:10} }, border:{display:false}, beginAtZero:true },
-};
+function getTooltip() {
+  const light = isLight();
+  return {
+    backgroundColor: light ? 'rgba(255,255,255,0.97)' : 'rgba(10,12,24,0.95)',
+    borderColor:     light ? 'rgba(0,0,0,0.08)'      : 'rgba(255,255,255,0.08)',
+    borderWidth:     1,
+    titleColor:      light ? '#1a1530'               : '#eef2ff',
+    bodyColor:       light ? 'rgba(26,21,48,0.7)'    : 'rgba(255,255,255,0.6)',
+    padding:         12,
+    cornerRadius:    10,
+    displayColors:   false,
+  };
+}
+
+function getScale() {
+  const light    = isLight();
+  const gridCol  = light ? 'rgba(0,0,0,0.07)'  : 'rgba(255,255,255,0.04)';
+  const tickCol  = light ? 'rgba(26,21,48,0.55)' : 'rgba(255,255,255,0.35)';
+  return {
+    x: { grid: { color: gridCol }, ticks: { color: tickCol, font:{size:10} }, border:{display:false} },
+    y: { grid: { color: gridCol }, ticks: { color: tickCol, font:{size:10} }, border:{display:false}, beginAtZero:true },
+  };
+}
+
+/* Garde-fous retro-compatibles (utilisees ailleurs si jamais) */
+const TOOLTIP = getTooltip();
+const SCALE   = getScale();
 
 function hexGrad(id, hex, alpha=0.25) {
   const canvas = document.getElementById(id);
@@ -82,6 +97,11 @@ export async function initHealth() {
   if (wasCallback) {
     showToast('✅ Withings connecté avec succès !');
   }
+
+  /* Re-render des charts au basculement clair/sombre pour mettre a jour les couleurs */
+  window.addEventListener('theme-changed', () => {
+    if (isConnected()) loadAndRender(currentDays);
+  });
 }
 
 /* ════════════════════════════════════════════════════════
@@ -346,8 +366,7 @@ function renderStepsChart(data) {
     }]},
     options: chartOpts({
       y: {
-        ...SCALE.y,
-        ticks: { ...SCALE.y.ticks, callback: v => v >= 1000 ? (v/1000)+'k' : v }
+        ticks: { callback: v => v >= 1000 ? (v/1000)+'k' : v }
       },
       tooltip: { callbacks: {
         label: ctx => `${ctx.parsed.y.toLocaleString('fr-FR')} pas`,
@@ -478,17 +497,25 @@ function destroyChart(id) {
 }
 
 function chartOpts({ stacked=false, tooltip={}, legend={display:false}, y={} }={}) {
+  /* Recalcule les couleurs a chaque rendu pour suivre le mode clair/sombre */
+  const TT = getTooltip();
+  const SC = getScale();
   return {
     responsive: true,
     maintainAspectRatio: false,
     animation: { duration:700, easing:'easeOutQuart' },
     plugins: {
       legend,
-      tooltip: { ...TOOLTIP, ...tooltip },
+      tooltip: { ...TT, ...tooltip },
     },
     scales: {
-      x: { ...SCALE.x, stacked },
-      y: { ...SCALE.y, stacked, ...y },
+      x: { ...SC.x, stacked },
+      y: {
+        ...SC.y,
+        stacked,
+        ...y,
+        ticks: { ...SC.y.ticks, ...(y.ticks || {}) },
+      },
     },
   };
 }
