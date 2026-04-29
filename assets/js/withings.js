@@ -223,6 +223,49 @@ export async function getMeasures(days = 30) {
   return { weight, heartrate };
 }
 
+/**
+ * FC heure par heure pour aujourd'hui (intraday).
+ * Retourne [{hour: 0..23, val: bpm}] — moyenne par heure si plusieurs points.
+ */
+export async function getTodayHRHourly() {
+  const token = await validToken();
+  const now   = new Date();
+  const start = new Date(now); start.setHours(0,0,0,0);
+
+  const params = new URLSearchParams({
+    action:      'getintradayactivity',
+    startdate:   Math.floor(start.getTime() / 1000),
+    enddate:     Math.floor(now.getTime()   / 1000),
+    data_fields: 'heart_rate',
+  });
+
+  try {
+    const res  = await fetch(`${WITHINGS_API}/v2/measure?${params}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const json = await res.json();
+    if (json.status !== 0) return [];
+
+    /* Bucket par heure (moyenne) */
+    const buckets = Array.from({ length: 24 }, () => ({ sum: 0, n: 0 }));
+    const series = json.body?.series || {};
+    for (const ts in series) {
+      const point = series[ts];
+      const hr    = point.heart_rate;
+      if (!hr || hr <= 0) continue;
+      const hour  = new Date(Number(ts) * 1000).getHours();
+      buckets[hour].sum += hr;
+      buckets[hour].n   += 1;
+    }
+    return buckets.map((b, h) => ({
+      hour: h,
+      val:  b.n ? Math.round(b.sum / b.n) : null,
+    }));
+  } catch {
+    return [];
+  }
+}
+
 export async function getTodaySteps() {
   const data = await getStepsHistory(1);
   return data.length > 0 ? (data[0].steps || 0) : 0;

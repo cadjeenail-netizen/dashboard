@@ -5,7 +5,8 @@
 
 import {
   isConnected, startOAuth, handleCallback, disconnect,
-  getStepsHistory, getSleepHistory, getMeasures, getTodaySteps
+  getStepsHistory, getSleepHistory, getMeasures, getTodaySteps,
+  getTodayHRHourly
 } from './withings.js';
 
 /* ── Chart.js présent via CDN dans index.html ── */
@@ -48,6 +49,14 @@ function hexGrad(id, hex, alpha=0.25) {
 function fmtDate(str) {
   const [,m,d] = str.split('-');
   return `${d}/${m}`;
+}
+
+/* Jour de la semaine en FR : "Mar 15", "Mer 16"... */
+const DAYS_FR = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
+function fmtDay(str) {
+  const [y, m, d] = str.split('-').map(Number);
+  const date = new Date(Date.UTC(y, m - 1, d));
+  return `${DAYS_FR[date.getUTCDay()]} ${d}`;
 }
 
 /* ════════════════════════════════════════════════════════
@@ -228,11 +237,14 @@ async function loadAndRender(days = 7) {
   showLoadingState();
 
   try {
-    const [stepsData, sleepData, measures] = await Promise.all([
+    const [stepsData, sleepData, measures, hrHourly] = await Promise.all([
       getStepsHistory(days).catch(() => []),
       getSleepHistory(days).catch(() => []),
       getMeasures().catch(() => ({ weight: [], heartrate: [] })),
+      getTodayHRHourly().catch(() => []),
     ]);
+    /* On stocke la FC horaire pour le rendu (au lieu de la FC quotidienne) */
+    measures.hrHourly = hrHourly;
 
     showDataState();
 
@@ -240,7 +252,7 @@ async function loadAndRender(days = 7) {
     try { renderKpis(stepsData, sleepData, measures); }      catch(e) { console.error('[health] renderKpis', e); }
     try { renderStepsChart(stepsData); }                     catch(e) { console.error('[health] renderStepsChart', e); }
     try { renderSleepChart(sleepData); }                     catch(e) { console.error('[health] renderSleepChart', e); }
-    try { renderHRChart(measures.heartrate || []); }         catch(e) { console.error('[health] renderHRChart', e); }
+    try { renderHRChart(measures.hrHourly?.length ? measures.hrHourly : (measures.heartrate || [])); } catch(e) { console.error('[health] renderHRChart', e); }
     try { renderWeightChart(measures.weight || []); }        catch(e) { console.error('[health] renderWeightChart', e); }
     setupFilters();
 
@@ -289,7 +301,7 @@ function renderKpis(stepsData, sleepData, measures) {
   if (slEl) slEl.textContent = avgSleep !== '—' ? `moy. ${avgSleep}h` : '—';
 
   const hrEl = document.getElementById('stat-hr');
-  if (hrEl) hrEl.textContent = lastHR !== '—' ? `${lastHR} bpm` : '—';
+  if (hrEl) hrEl.textContent = avgHR !== '—' ? `moy. ${avgHR} bpm` : '—';
 
   const wEl = document.getElementById('stat-weight');
   if (wEl) wEl.textContent = lastWeight !== '—' ? `${lastWeight} kg` : '—';
@@ -313,7 +325,7 @@ function barGrad(id, hex) {
 function renderStepsChart(data) {
   destroyChart('hc-steps');
   if (!data.length) return;
-  const labels = data.map(d => fmtDate(d.date));
+  const labels = data.map(d => fmtDay(d.date));
   const values = data.map(d => d.steps || 0);
 
   /* Dégradé violet → cyan selon objectif */
@@ -383,9 +395,20 @@ function renderHRChart(data) {
   if (!data.length) { if(card) card.style.display='none'; return; }
   if(card) card.style.display='';
 
-  const sorted = [...data].sort((a,b) => a.date.localeCompare(b.date)).slice(-currentDays);
-  const labels = sorted.map(d => fmtDate(d.date));
-  const values = sorted.map(d => d.val);
+  /* Detecte le format : intraday {hour,val} ou journalier {date,val} */
+  const isIntraday = data[0] && 'hour' in data[0];
+
+  let labels, values;
+  if (isIntraday) {
+    /* Intraday : 24 points heure par heure */
+    labels = data.map(d => `${String(d.hour).padStart(2,'0')}h`);
+    values = data.map(d => d.val); // null pour heures sans donnees
+  } else {
+    /* Journalier (fallback) */
+    const sorted = [...data].sort((a,b) => a.date.localeCompare(b.date)).slice(-currentDays);
+    labels = sorted.map(d => fmtDate(d.date));
+    values = sorted.map(d => d.val);
+  }
 
   charts['hr'] = new Chart('hc-hr', {
     type: 'line',
@@ -396,10 +419,11 @@ function renderHRChart(data) {
       pointBackgroundColor: '#fff',
       pointBorderColor: '#f472b6',
       pointBorderWidth: 2,
-      pointRadius: 5,
+      pointRadius: isIntraday ? 3 : 5,
       pointHoverRadius: 8,
       tension: 0.45,
       fill: true,
+      spanGaps: true,
       backgroundColor: hexGrad('hc-hr', '#f472b6', 0.35),
     }]},
     options: chartOpts({ tooltip: { callbacks: { label: ctx => `${ctx.parsed.y} bpm` } } }),
