@@ -4,175 +4,44 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- Content Security Policy : limite les domaines autorises pour scripts/styles/fetch -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com data:; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co https://wbsapi.withings.net https://account.withings.com https://api.open-meteo.com https://geocoding-api.open-meteo.com https://cdn.jsdelivr.net; base-uri 'self'; form-action 'self' https://account.withings.com;">
+  <!-- CSP : autorise React + Babel via CDN. 'unsafe-eval' nécessaire pour Babel standalone. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com data:; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co https://wbsapi.withings.net https://account.withings.com https://api.open-meteo.com https://geocoding-api.open-meteo.com https://cdn.jsdelivr.net https://unpkg.com; base-uri 'self'; form-action 'self' https://account.withings.com;">
   <meta http-equiv="X-Content-Type-Options" content="nosniff" />
   <meta name="referrer" content="strict-origin-when-cross-origin" />
 
   <title>Nebula — Dashboard</title>
   <link rel="icon" type="image/svg+xml" href="assets/img/nebula-logo.svg" />
 
-  <!-- Google Fonts -->
+  <!-- Google Fonts (Geist + Inter Tight + JetBrains Mono comme Geist Mono fallback) -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500;600&family=Inter+Tight:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
-  <!-- Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-
-  <!-- Styles -->
-  <link rel="stylesheet" href="assets/css/main.css" />
-  <link rel="stylesheet" href="assets/css/components.css" />
-  <link rel="stylesheet" href="assets/css/animations.css" />
-  <link rel="stylesheet" href="assets/css/settings.css" />
+  <!-- Style refonte -->
+  <link rel="stylesheet" href="assets/css/design.css" />
 </head>
 <body>
+  <div id="root"></div>
 
-  <!-- Étoiles CSS -->
-  <div class="stars" aria-hidden="true">
-    <div class="stars-layer stars-sm"></div>
-    <div class="stars-layer stars-md"></div>
-    <div class="stars-layer stars-lg"></div>
-  </div>
+  <!-- ════════════════════════════════════════════
+       1) BRIDGE (type=module) — expose window.Nebula
+          + traite le callback OAuth Withings si ?code=…
+  ════════════════════════════════════════════ -->
+  <script type="module" src="assets/js/design/bridge.js"></script>
 
-  <!-- Grain overlay -->
-  <div class="grain" aria-hidden="true"></div>
+  <!-- ════════════════════════════════════════════
+       2) React + ReactDOM + Babel standalone (CDN)
+  ════════════════════════════════════════════ -->
+  <script crossorigin src="https://cdn.jsdelivr.net/npm/react@18.3.1/umd/react.production.min.js"></script>
+  <script crossorigin src="https://cdn.jsdelivr.net/npm/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.25.6/babel.min.js"></script>
 
-  <!-- ════════════════════════════════════════
-       HEADER
-  ════════════════════════════════════════ -->
-  <header class="site-header">
-    <div class="header-inner">
-      <div class="header-left">
-        <h1 class="site-title"><span class="gradient-text">Nebula</span></h1>
-        <p class="header-date" id="header-date">Chargement…</p>
-      </div>
-      <div class="header-right">
-        <div class="header-clock" id="header-clock">00:00:00</div>
-        <div class="avatar">N</div>
-      </div>
-    </div>
-  </header>
-
-  <!-- ════════════════════════════════════════
-       GREETING CARD (pleine largeur)
-  ════════════════════════════════════════ -->
-  <main class="main-content">
-    <section class="greeting-card card fade-in" style="--delay:.05s">
-      <div class="greeting-left">
-        <p class="greeting-label">Bienvenue</p>
-        <h2 class="greeting-text" id="greeting-text">Bonjour 👋</h2>
-        <p class="greeting-sub" id="greeting-sub">Que ta journée soit aussi belle que tu le mérites.</p>
-      </div>
-      <div class="greeting-right">
-        <svg class="score-ring" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
-          <circle class="ring-track" cx="60" cy="60" r="50" />
-          <circle class="ring-fill" cx="60" cy="60" r="50" id="score-ring-fill" />
-          <text class="ring-value" x="60" y="64" text-anchor="middle" id="score-value">—</text>
-          <text class="ring-label-svg" x="60" y="80" text-anchor="middle">Score</text>
-        </svg>
-      </div>
-    </section>
-
-    <!-- ════════════════════════════════════════
-         GRID PRINCIPALE
-    ════════════════════════════════════════ -->
-    <div class="dashboard-grid">
-
-      <!-- ── 1. MÉTÉO ── -->
-      <article class="card fade-in" style="--delay:.1s" id="weather-card">
-        <div class="card-header">
-          <span class="card-title">Météo</span>
-          <span class="card-badge badge-cyan">Chargement…</span>
-        </div>
-      </article>
-
-
-      <!-- ── 3. AGENDA ── -->
-      <article class="card fade-in" style="--delay:.2s" id="agenda-card">
-        <div class="card-header">
-          <span class="card-title">Agenda</span>
-          <button class="agenda-add-btn" id="agenda-add-btn" title="Ajouter un événement">+ Ajouter</button>
-        </div>
-        <div class="timeline" id="agenda-timeline"></div>
-      </article>
-
-      <!-- ── 4. HABITUDES (2 colonnes) ── -->
-      <article class="card card-wide fade-in" style="--delay:.25s" id="habits-card">
-        <div class="card-header">
-          <span class="card-title">Habitudes</span>
-          <span class="habits-score-label" id="habits-score-label">0 / 35</span>
-        </div>
-        <div class="habits-global-bar">
-          <div class="habits-global-fill" id="habits-global-fill"></div>
-        </div>
-        <div class="habits-list" id="habits-list">
-          <!-- Généré par habits.js -->
-        </div>
-      </article>
-
-      <!-- ── 5. OBJECTIFS ── -->
-      <article class="card fade-in" style="--delay:.3s" id="goals-card">
-        <div class="card-header">
-          <span class="card-title">Objectifs</span>
-        </div>
-        <div class="goals-list" id="goals-list">
-          <!-- Généré par goals.js -->
-        </div>
-      </article>
-
-      <!-- ── 6. FINANCES (2 colonnes) ── -->
-      <article class="card card-wide fade-in" style="--delay:.35s" id="finance-card">
-        <div class="card-header">
-          <span class="card-title">Finances</span>
-          <span class="card-badge badge-mint">Avril 2026</span>
-        </div>
-        <div class="finance-boxes" id="finance-boxes">
-          <!-- Généré par finance.js -->
-        </div>
-        <div class="transactions" id="transactions-list">
-          <!-- Généré par finance.js -->
-        </div>
-      </article>
-
-      <!-- ── 7. TÂCHES ── -->
-      <article class="card fade-in" style="--delay:.4s" id="todo-card">
-        <div class="card-header">
-          <span class="card-title">Tâches</span>
-          <span class="todo-count" id="todo-count">0 restante(s)</span>
-        </div>
-        <div class="todo-input-row">
-          <input
-            type="text"
-            class="todo-input"
-            id="todo-input"
-            placeholder="Nouvelle tâche…"
-            maxlength="80"
-          />
-          <button class="btn btn-primary btn-icon" id="todo-add-btn" title="Ajouter">+</button>
-        </div>
-        <ul class="todo-list" id="todo-list">
-          <!-- Généré par todo.js -->
-        </ul>
-      </article>
-
-    </div><!-- /dashboard-grid -->
-
-    <!-- ── 8. CITATION (pleine largeur) ── -->
-    <section class="card quote-card fade-in" style="--delay:.45s" id="quote-card">
-      <div class="quote-bg-mark">"</div>
-      <blockquote class="quote-text" id="quote-text">
-        Le succès n'est pas final, l'échec n'est pas fatal : c'est le courage de continuer qui compte.
-      </blockquote>
-      <div class="quote-footer">
-        <cite class="quote-author" id="quote-author">Winston Churchill</cite>
-        <button class="btn btn-ghost btn-sm" id="quote-refresh-btn">↻ Nouvelle</button>
-      </div>
-    </section>
-
-  </main>
-
-  <!-- Scripts (modules ES6) -->
-  <script type="module" src="assets/js/app.js"></script>
+  <!-- ════════════════════════════════════════════
+       3) Composants JSX (Babel les compile à la volée)
+          Ordre : icons → charts → app
+  ════════════════════════════════════════════ -->
+  <script type="text/babel" data-presets="react" src="assets/js/design/icons.jsx"></script>
+  <script type="text/babel" data-presets="react" src="assets/js/design/charts.jsx"></script>
+  <script type="text/babel" data-presets="react" src="assets/js/design/app.jsx"></script>
 </body>
 </html>
