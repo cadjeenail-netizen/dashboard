@@ -990,8 +990,6 @@ const SettingsView = ({ tw, setTweak }) => {
     { name: "Apple Health", icon: "❤️", connected: true, last: "il y a 2 min" },
     { name: "Google Calendar", icon: "📅", connected: true, last: "il y a 10 min" },
     { name: "Bank Connect", icon: "🏦", connected: true, last: "il y a 1 h" },
-    { name: "Spotify", icon: "🎵", connected: false, last: null },
-    { name: "Strava", icon: "🏃", connected: false, last: null },
   ]);
   const [privacy, setPrivacy] = React.useState({ share: true, icloud: true, autoUpdate: true });
   const toggleAcc = (i) => setAccounts(a => a.map((x, j) => j === i ? { ...x, connected: !x.connected, last: !x.connected ? "à l'instant" : null } : x));
@@ -1055,8 +1053,10 @@ const SettingsView = ({ tw, setTweak }) => {
         <SRow label="Couleur d'accent">
           <div style={{ display: "flex", gap: 6 }}>
             {[
-              { v: "violet", c: "#8b5cf6" }, { v: "blue", c: "#3b82f6" },
-              { v: "pink", c: "#ec4899" }, { v: "green", c: "#22c55e" }, { v: "amber", c: "#f59e0b" }
+              { v: "violet",  c: "#7c5cff" },
+              { v: "ocean",   c: "#3aaed8" },
+              { v: "rose",    c: "#e94e7d" },
+              { v: "emerald", c: "#15a86b" },
             ].map(o => (
               <button key={o.v} onClick={() => setTweak("accent", o.v)} title={o.v}
                 style={{ width: 22, height: 22, borderRadius: "50%", border: tw.accent === o.v ? "2px solid var(--text)" : "2px solid transparent",
