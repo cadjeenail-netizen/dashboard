@@ -403,7 +403,8 @@ function populateWithings() {
   document.getElementById('withings-sync').onclick = () => {
     set('withings_last_sync', Date.now());
     populateWithings();
-    location.reload();
+    /* Force un re-fetch des donnees Withings sans recharger la page */
+    window.dispatchEvent(new CustomEvent('withings-sync'));
   };
 
   const freq = document.getElementById('withings-freq');

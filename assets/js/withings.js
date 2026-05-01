@@ -113,13 +113,22 @@ export async function handleCallback() {
    uniquement le token endpoint nécessite un proxy.
    ════════════════════════════════════════════════════════ */
 
+/* Format YYYY-MM-DD en heure LOCALE (pas UTC) — sinon décalage de timezone
+   peut renvoyer la date de la veille pour Withings */
+function fmtLocalDate(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
 export async function getStepsHistory(days = 7) {
   const token   = await validToken();
   const endDate = new Date();
   const startDate = new Date();
   startDate.setDate(startDate.getDate() - days + 1);
 
-  const fmt = d => d.toISOString().slice(0, 10);
+  const fmt = fmtLocalDate;
   const params = new URLSearchParams({
     action:       'getactivity',
     startdateymd: fmt(startDate),
@@ -142,8 +151,8 @@ export async function getSleepHistory(days = 7) {
 
   const params = new URLSearchParams({
     action:    'getsummary',
-    startdateymd: new Date(start * 1000).toISOString().slice(0,10),
-    enddateymd:   new Date(end   * 1000).toISOString().slice(0,10),
+    startdateymd: fmtLocalDate(new Date(start * 1000)),
+    enddateymd:   fmtLocalDate(new Date(end   * 1000)),
     data_fields: 'nb_rem_episodes,sleep_score,deepsleepduration,lightsleepduration,remsleepduration,wakeupduration',
   });
 
@@ -180,7 +189,7 @@ export async function getMeasures(days = 30) {
   const endDate   = new Date();
   const startDate = new Date();
   startDate.setDate(startDate.getDate() - days + 1);
-  const fmt = d => d.toISOString().slice(0,10);
+  const fmt = fmtLocalDate;
   const actParams = new URLSearchParams({
     action:       'getactivity',
     startdateymd: fmt(startDate),
@@ -197,7 +206,7 @@ export async function getMeasures(days = 30) {
   const weight = [];
   if (measJson.status === 0) {
     for (const group of (measJson.body?.measuregrps || [])) {
-      const date = new Date(group.date * 1000).toISOString().slice(0,10);
+      const date = fmtLocalDate(new Date(group.date * 1000));
       for (const m of group.measures) {
         const val = m.value * Math.pow(10, m.unit);
         if (m.type === 1) weight.push({ date, val: Math.round(val * 10) / 10 });

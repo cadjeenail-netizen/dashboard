@@ -102,6 +102,11 @@ export async function initHealth() {
   window.addEventListener('theme-changed', () => {
     if (isConnected()) loadAndRender(currentDays);
   });
+
+  /* Sync forcee depuis le bouton Synchroniser des Parametres */
+  window.addEventListener('withings-sync', () => {
+    if (isConnected()) loadAndRender(currentDays);
+  });
 }
 
 /* ════════════════════════════════════════════════════════
