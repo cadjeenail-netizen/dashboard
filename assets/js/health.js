@@ -311,11 +311,18 @@ function renderKpis(stepsData, sleepData, measures) {
   }, 0);
   const avgSleep = sleepData.length ? (totalSleepSec / sleepData.length / 3600).toFixed(1) : '—';
 
-  /* FC moyenne sur la periode (au lieu de juste la derniere mesure) */
-  const hrVals = measures.heartrate.map(h => h.val).filter(v => v > 0);
-  const avgHR  = hrVals.length
-    ? Math.round(hrVals.reduce((a,b) => a + b, 0) / hrVals.length)
-    : '—';
+  /* FC moyenne d'AUJOURD'HUI :
+     1) Priorite a la moyenne intraday horaire si dispo (donnees du jour)
+     2) Sinon hr_average de l'activite du jour
+     3) Sinon — (pas de donnees pour aujourd'hui) */
+  let avgHR = '—';
+  const hourlyVals = (measures.hrHourly || []).map(h => h.val).filter(v => v && v > 0);
+  if (hourlyVals.length) {
+    avgHR = Math.round(hourlyVals.reduce((a,b) => a + b, 0) / hourlyVals.length);
+  } else {
+    const hrToday = measures.heartrate.find(h => h.date === todayStr);
+    if (hrToday && hrToday.val > 0) avgHR = hrToday.val;
+  }
   const lastWeight = measures.weight.slice(-1)[0]?.val ?? '—';
 
   el.innerHTML = `
