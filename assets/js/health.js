@@ -296,7 +296,15 @@ function renderKpis(stepsData, sleepData, measures) {
     ? Math.round(stepsData.reduce((a,b) => a + (b.steps||0), 0) / stepsData.length)
     : 0;
 
-  const todaySteps = stepsData.length ? (stepsData[stepsData.length-1].steps || 0) : 0;
+  /* Cherche l'entree correspondant a aujourd'hui (date locale).
+     Si Withings n'a pas encore les donnees du jour (montre pas synchronisee),
+     on affiche 0 plutot que les pas d'hier. */
+  const todayStr = (() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  })();
+  const todayEntry = stepsData.find(s => s.date === todayStr);
+  const todaySteps = todayEntry ? (todayEntry.steps || 0) : 0;
 
   const totalSleepSec = sleepData.reduce((acc, s) => {
     return acc + (s.data?.deepsleepduration||0) + (s.data?.lightsleepduration||0) + (s.data?.remsleepduration||0);

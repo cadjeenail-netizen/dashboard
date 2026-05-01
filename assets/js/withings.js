@@ -277,5 +277,11 @@ export async function getTodayHRHourly() {
 
 export async function getTodaySteps() {
   const data = await getStepsHistory(1);
-  return data.length > 0 ? (data[0].steps || 0) : 0;
+  if (!data.length) return 0;
+  /* Verifie que l'entree correspond bien a aujourd'hui (sinon Withings
+     peut renvoyer l'activite la plus recente, ex: hier si la montre
+     n'a pas encore synchronise vers le cloud Withings) */
+  const today = fmtLocalDate(new Date());
+  const todayEntry = data.find(d => d.date === today);
+  return todayEntry ? (todayEntry.steps || 0) : 0;
 }
