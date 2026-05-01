@@ -944,3 +944,57 @@ body {
   align-items: center; justify-content: center;
   text-align: center;
 }
+
+/* ─── Fix : Settings & Insights ne doivent pas être contraints par les rows fixes ─── */
+.app[data-view="settings"] .grid,
+.app[data-view="insights"] .grid {
+  grid-template-rows: auto;
+  grid-auto-rows: min-content;
+}
+.app[data-view="settings"] .settings-view,
+.app[data-view="insights"] .insights-view {
+  grid-row: auto;
+}
+.app[data-view="settings"] .card,
+.app[data-view="insights"] .card {
+  min-height: 0;
+  height: auto;
+  overflow: visible;
+}
+
+/* ─── Fix : la grille principale ne doit pas écraser les cartes en dessous ───
+   On laisse les rows s'adapter au contenu si besoin */
+.grid {
+  grid-auto-rows: min-content;
+}
+
+/* ─── Responsive : sidebar en mobile ─── */
+@media (max-width: 900px) {
+  .app {
+    grid-template-columns: 1fr;
+  }
+  .sidebar {
+    position: relative;
+    height: auto;
+    flex-direction: row;
+    overflow-x: auto;
+    padding: 10px;
+  }
+  .sidebar .brand,
+  .sidebar .nav-section,
+  .sidebar-foot {
+    display: none;
+  }
+  .nav-item {
+    flex-shrink: 0;
+  }
+  .grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+    padding: 0 14px 14px;
+  }
+  .grid > .card {
+    grid-column: 1 / -1 !important;
+    grid-row: auto !important;
+  }
+}
