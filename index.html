@@ -18,8 +18,13 @@
       const isReturningFromIntro = params.get("intro") === "done";
       const isOAuthCallback = params.has("code") || params.has("state");
       const introSeen = sessionStorage.getItem("nebula_intro_seen") === "1";
+      let introEnabled = true;
+      try {
+        const tweaks = JSON.parse(localStorage.getItem("dashboard_vie_tweaks") || "{}");
+        introEnabled = tweaks.showIntro !== false;
+      } catch {}
 
-      if (!isReturningFromIntro && !isOAuthCallback && !introSeen) {
+      if (introEnabled && !isReturningFromIntro && !isOAuthCallback && !introSeen) {
         sessionStorage.setItem("nebula_intro_seen", "1");
         window.location.replace("agents-ia-intro.html");
       }

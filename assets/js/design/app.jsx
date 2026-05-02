@@ -5,7 +5,8 @@ const TWEAK_DEFAULTS = {
   "accent": "violet",
   "density": "comfortable",
   "showQuote": true,
-  "showSearch": true
+  "showSearch": true,
+  "showIntro": true
 };
 
 /* ── Override useTweaks : persiste via storage.js (préfixe dashboard_vie_) ── */
@@ -24,6 +25,18 @@ function useTweaks(defaults) {
     });
   }, []);
   return [values, setTweak];
+}
+
+function useStoredState(key, defaults) {
+  const [value, setValue] = React.useState(() => window.Nebula?.storage?.get(key, defaults) ?? defaults);
+  const update = React.useCallback((updater) => {
+    setValue(prev => {
+      const next = typeof updater === "function" ? updater(prev) : updater;
+      window.Nebula?.storage?.set(key, next);
+      return next;
+    });
+  }, [key]);
+  return [value, update];
 }
 
 /* ── Hook Withings réel ── */
@@ -541,7 +554,7 @@ const Productivity = () => {
   const [tab, setTab] = React.useState("habits");
   const [editMode, setEditMode] = React.useState(true);
 
-  const [habits, setHabits] = React.useState([
+  const [habits, setHabits] = useStoredState("habits", [
     { name: "Sport",     icon: "🏃",  color: "var(--accent)",  days: [1,1,0,1,1,0,1], streak: 4 },
     { name: "Lecture",   icon: "📖",  color: "var(--green)",   days: [1,1,1,0,1,1,1], streak: 6 },
     { name: "2 L d'eau", icon: "💧",  color: "var(--blue)",    days: [1,1,1,1,1,0,1], streak: 5 },
@@ -551,14 +564,14 @@ const Productivity = () => {
   const dayLetters = ["L","M","M","J","V","S","D"];
   const todayIdx = 4; // ven
 
-  const [goals, setGoals] = React.useState([
+  const [goals, setGoals] = useStoredState("goals", [
     { name: "Économies annuelles", pct: 42, color: "var(--accent)",  cur: "4 200", tot: "10 000 €" },
     { name: "Projet freelance",    pct: 68, color: "var(--blue)",    cur: "17/25", tot: "livrables" },
     { name: "Forme physique",      pct: 75, color: "var(--green)",   cur: "9/12",  tot: "séances/mois" },
     { name: "Formation en ligne",  pct: 31, color: "var(--pink)",    cur: "12/40", tot: "modules" },
   ]);
 
-  const [tasks, setTasks] = React.useState([
+  const [tasks, setTasks] = useStoredState("tasks", [
     { name: "Planifier la semaine", done: false, prio: "h" },
     { name: "Lire 30 minutes",       done: false, prio: "m" },
     { name: "Vérifier les finances", done: false, prio: "l" },
@@ -751,8 +764,8 @@ const EditableNum = ({ value, onChange, prefix = "", suffix = "", style = {}, fm
 
 const Finances = () => {
   const months = ["Nov", "Déc", "Jan", "Fév", "Mar", "Avr"];
-  const [income,  setIncome]  = React.useState([2900, 3200, 2800, 3100, 3400, 3300]);
-  const [expense, setExpense] = React.useState([2200, 2700, 2100, 2400, 2600, 2400]);
+  const [income,  setIncome]  = useStoredState("finance_income", [2900, 3200, 2800, 3100, 3400, 3300]);
+  const [expense, setExpense] = useStoredState("finance_expense", [2200, 2700, 2100, 2400, 2600, 2400]);
   const setI = (idx, v) => setIncome(prev => prev.map((x, i) => i === idx ? v : x));
   const setE = (idx, v) => setExpense(prev => prev.map((x, i) => i === idx ? v : x));
   const balance = income.reduce((a,b)=>a+b,0) - expense.reduce((a,b)=>a+b,0);
@@ -831,7 +844,7 @@ const Finances = () => {
 
 /* === Agenda === */
 const Agenda = () => {
-  const [events, setEvents] = React.useState([
+  const [events, setEvents] = useStoredState("agenda_events", [
     { time: "09:00", name: "Stand-up équipe", meta: "30 min · Visio", color: "var(--accent)" },
     { time: "11:30", name: "Déjeuner Camille", meta: "Restaurant Aloha", color: "var(--pink)" },
     { time: "14:00", name: "Revue de design", meta: "Salle Pluton", color: "var(--blue)" },
@@ -1216,6 +1229,9 @@ const SettingsView = ({ tw, setTweak }) => {
         <SRow label="Citation du jour" hint="Affiche une citation sur l'accueil">
           <Toggle on={tw.showQuote} onClick={() => setTweak("showQuote", !tw.showQuote)} />
         </SRow>
+        <SRow label="Intro Nebula" hint="Joue l'animation au premier chargement">
+          <Toggle on={tw.showIntro} onClick={() => setTweak("showIntro", !tw.showIntro)} />
+        </SRow>
         <SRow label="Barre de recherche" hint="Cmd+K dans le topbar" last>
           <Toggle on={tw.showSearch} onClick={() => setTweak("showSearch", !tw.showSearch)} />
         </SRow>
@@ -1401,24 +1417,6 @@ const IntroAnimation = ({ onDone }) => {
 const App = () => {
   const [tw, setTweak] = useTweaks(TWEAK_DEFAULTS);
   const [active, setActive] = React.useState("home");
-  /* Skip intro si :
-     - mobile (≤ 600px) — perf + safety
-     - déjà vue il y a < 6h
-     - prefers-reduced-motion */
-  const [introDone, setIntroDone] = React.useState(() => {
-    try {
-      const isMobile = window.matchMedia("(max-width: 600px)").matches;
-      const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      const lastSeen = window.Nebula?.storage?.get("intro_seen_at", 0) || 0;
-      const recentlySeen = Date.now() - lastSeen < 6 * 3600 * 1000;
-      return isMobile || reducedMotion || recentlySeen;
-    } catch { return true; }
-  });
-  const handleIntroDone = React.useCallback(() => {
-    try { window.Nebula?.storage?.set("intro_seen_at", Date.now()); } catch {}
-    setIntroDone(true);
-  }, []);
-
   React.useEffect(() => {
     document.documentElement.dataset.theme = tw.theme;
   }, [tw.theme]);
@@ -1441,7 +1439,6 @@ const App = () => {
 
   return (
     <>
-      {!introDone && <IntroAnimation onDone={handleIntroDone} />}
     <div className="app" data-view={active}>
       <Sidebar active={active} setActive={setActive} theme={tw.theme} toggleTheme={toggleTheme} />
       <main className="main">
