@@ -5,8 +5,7 @@ const TWEAK_DEFAULTS = {
   "accent": "violet",
   "density": "comfortable",
   "showQuote": true,
-  "showSearch": true,
-  "showIntro": true
+  "showSearch": true
 };
 
 /* ── Override useTweaks : persiste via storage.js (préfixe dashboard_vie_) ── */
@@ -25,18 +24,6 @@ function useTweaks(defaults) {
     });
   }, []);
   return [values, setTweak];
-}
-
-function useStoredState(key, defaults) {
-  const [value, setValue] = React.useState(() => window.Nebula?.storage?.get(key, defaults) ?? defaults);
-  const update = React.useCallback((updater) => {
-    setValue(prev => {
-      const next = typeof updater === "function" ? updater(prev) : updater;
-      window.Nebula?.storage?.set(key, next);
-      return next;
-    });
-  }, [key]);
-  return [value, update];
 }
 
 /* ── Hook Withings réel ── */
@@ -138,7 +125,7 @@ const Sidebar = ({ active, setActive, theme, toggleTheme }) => {
       <div className="sidebar-foot">
         <div className="avatar">N</div>
         <div style={{ minWidth: 0, flex: 1 }}>
-          <div className="user-name">Noé Lambert</div>
+          <div className="user-name">Na'îl Cadjee</div>
           <div className="user-mail">noe@nebula.app</div>
         </div>
         <button className="theme-toggle" onClick={toggleTheme} title="Mode sombre">
@@ -401,8 +388,8 @@ const Health = () => {
   })();
 
   return (
-    <section className="health health-board">
-      <div className="health-head">
+    <div className="card health">
+      <div className="card-h">
         <span className="title section-label"><Icon name="health" size={11} /> Santé</span>
         <span style={{ display: "inline-flex", alignItems: "center", gap: 5, marginLeft: 4 }}>
           <span className="connected-dot" style={{ background: wd.connected ? "var(--green)" : "var(--text-3)", boxShadow: wd.connected ? "0 0 0 3px var(--green-soft)" : "none" }} />
@@ -499,7 +486,7 @@ const Health = () => {
           </div>
         </div>
       </div>
-    </section>
+    </div>
   );
 };
 
@@ -552,9 +539,9 @@ const SleepStages = () => {
 /* === Productivity (tabs: Habits / Goals / Tasks) === */
 const Productivity = () => {
   const [tab, setTab] = React.useState("habits");
-  const [editMode, setEditMode] = React.useState(true);
+  const [editMode, setEditMode] = React.useState(false);
 
-  const [habits, setHabits] = useStoredState("habits", [
+  const [habits, setHabits] = React.useState([
     { name: "Sport",     icon: "🏃",  color: "var(--accent)",  days: [1,1,0,1,1,0,1], streak: 4 },
     { name: "Lecture",   icon: "📖",  color: "var(--green)",   days: [1,1,1,0,1,1,1], streak: 6 },
     { name: "2 L d'eau", icon: "💧",  color: "var(--blue)",    days: [1,1,1,1,1,0,1], streak: 5 },
@@ -564,14 +551,14 @@ const Productivity = () => {
   const dayLetters = ["L","M","M","J","V","S","D"];
   const todayIdx = 4; // ven
 
-  const [goals, setGoals] = useStoredState("goals", [
+  const [goals, setGoals] = React.useState([
     { name: "Économies annuelles", pct: 42, color: "var(--accent)",  cur: "4 200", tot: "10 000 €" },
     { name: "Projet freelance",    pct: 68, color: "var(--blue)",    cur: "17/25", tot: "livrables" },
     { name: "Forme physique",      pct: 75, color: "var(--green)",   cur: "9/12",  tot: "séances/mois" },
     { name: "Formation en ligne",  pct: 31, color: "var(--pink)",    cur: "12/40", tot: "modules" },
   ]);
 
-  const [tasks, setTasks] = useStoredState("tasks", [
+  const [tasks, setTasks] = React.useState([
     { name: "Planifier la semaine", done: false, prio: "h" },
     { name: "Lire 30 minutes",       done: false, prio: "m" },
     { name: "Vérifier les finances", done: false, prio: "l" },
@@ -711,7 +698,7 @@ const Productivity = () => {
             </div>
             {tasks.map((t, i) => (
               <div key={i} className={`task-row ${t.done ? "done" : ""}`} onClick={() => !editMode && toggleTask(i)}>
-                <div className="task-check" onClick={e => { e.stopPropagation(); toggleTask(i); }}>{t.done && <Icon name="check" size={11} />}</div>
+                <div className="task-check">{t.done && <Icon name="check" size={11} />}</div>
                 <span className={`task-prio ${t.prio}`} />
                 {editMode ? (
                   <input value={t.name}
@@ -764,8 +751,8 @@ const EditableNum = ({ value, onChange, prefix = "", suffix = "", style = {}, fm
 
 const Finances = () => {
   const months = ["Nov", "Déc", "Jan", "Fév", "Mar", "Avr"];
-  const [income,  setIncome]  = useStoredState("finance_income", [2900, 3200, 2800, 3100, 3400, 3300]);
-  const [expense, setExpense] = useStoredState("finance_expense", [2200, 2700, 2100, 2400, 2600, 2400]);
+  const [income,  setIncome]  = React.useState([2900, 3200, 2800, 3100, 3400, 3300]);
+  const [expense, setExpense] = React.useState([2200, 2700, 2100, 2400, 2600, 2400]);
   const setI = (idx, v) => setIncome(prev => prev.map((x, i) => i === idx ? v : x));
   const setE = (idx, v) => setExpense(prev => prev.map((x, i) => i === idx ? v : x));
   const balance = income.reduce((a,b)=>a+b,0) - expense.reduce((a,b)=>a+b,0);
@@ -776,7 +763,7 @@ const Finances = () => {
         <span className="title section-label"><Icon name="finances" size={11} /> Finances</span>
         <span className="spacer" />
         <span className="pill" style={{ background: "var(--green-soft)", color: "var(--green)" }}>+12% ce mois</span>
-        <button className="ghost-btn" style={{ marginLeft: 6 }}>Modifiable</button>
+        <button className="ghost-btn" style={{ marginLeft: 6 }}>Avril 2026</button>
       </div>
 
       <div className="fin-head">
@@ -804,30 +791,6 @@ const Finances = () => {
         <GroupedBar months={months} income={income} expense={expense} fmt={(v) => `${(v/1000).toFixed(1)}k`} />
       </div>
 
-      <div className="finance-edit-grid">
-        {months.map((month, index) => (
-          <div className="finance-edit-month" key={month}>
-            <div className="finance-edit-label">{month}</div>
-            <label>
-              <span>Revenus</span>
-              <input
-                type="number"
-                value={income[index]}
-                onChange={e => setI(index, Number(e.target.value) || 0)}
-              />
-            </label>
-            <label>
-              <span>Depenses</span>
-              <input
-                type="number"
-                value={expense[index]}
-                onChange={e => setE(index, Number(e.target.value) || 0)}
-              />
-            </label>
-          </div>
-        ))}
-      </div>
-
       <div className="fin-foot">
         <span className="legend-dot" style={{ background: "var(--green)" }} />
         <span>Revenus</span>
@@ -844,40 +807,19 @@ const Finances = () => {
 
 /* === Agenda === */
 const Agenda = () => {
-  const [events, setEvents] = useStoredState("agenda_events", [
+  const events = [
     { time: "09:00", name: "Stand-up équipe", meta: "30 min · Visio", color: "var(--accent)" },
     { time: "11:30", name: "Déjeuner Camille", meta: "Restaurant Aloha", color: "var(--pink)" },
     { time: "14:00", name: "Revue de design", meta: "Salle Pluton", color: "var(--blue)" },
     { time: "16:30", name: "Course longue", meta: "10 km · Plage", color: "var(--green)", current: true },
     { time: "19:00", name: "Yoga", meta: "Studio Sereno", color: "var(--amber)" },
-  ]);
-  const addEvent = () => {
-    const time = prompt("Heure de l'evenement", "18:00");
-    if (!time) return;
-    const name = prompt("Nom de l'evenement", "Nouvel evenement");
-    if (!name) return;
-    const meta = prompt("Details", "30 min");
-    setEvents(prev => [...prev, { time, name, meta: meta || "", color: "var(--accent)" }]);
-  };
-  const editEvent = (i) => {
-    const current = events[i];
-    const time = prompt("Heure", current.time);
-    if (!time) return;
-    const name = prompt("Nom", current.name);
-    if (!name) return;
-    const meta = prompt("Details", current.meta);
-    setEvents(prev => prev.map((event, index) => index === i ? { ...event, time, name, meta: meta || "" } : event));
-  };
-  const deleteEvent = (i) => {
-    if (!confirm("Supprimer cet evenement ?")) return;
-    setEvents(prev => prev.filter((_, index) => index !== i));
-  };
+  ];
   return (
     <div className="card agenda">
       <div className="card-h">
         <span className="title section-label"><Icon name="agenda" size={11} /> Agenda · Aujourd'hui</span>
         <span className="spacer" />
-        <button className="ghost-btn" onClick={addEvent}><Icon name="plus" size={11} /> Ajouter</button>
+        <button className="ghost-btn"><Icon name="plus" size={11} /> Ajouter</button>
       </div>
 
       <div className="agenda-now">
@@ -893,10 +835,6 @@ const Agenda = () => {
             <div className="ev-name">{e.name}</div>
             <div className="ev-meta">{e.meta}</div>
           </div>
-          <div className="agenda-actions">
-            <button onClick={() => editEvent(i)}>Modifier</button>
-            <button onClick={() => deleteEvent(i)}>Suppr.</button>
-          </div>
         </div>
       ))}
     </div>
@@ -910,38 +848,9 @@ const QUOTES = [
   { t: "La meilleure façon de prédire l'avenir, c'est de le créer.", a: "Peter Drucker" },
   { t: "On ne voit bien qu'avec le cœur. L'essentiel est invisible pour les yeux.", a: "Antoine de Saint-Exupéry" },
 ];
-const shuffledQuoteDeck = (exclude) => {
-  const deck = QUOTES.map((_, index) => index).filter(index => index !== exclude);
-  for (let i = deck.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [deck[i], deck[j]] = [deck[j], deck[i]];
-  }
-  return deck;
-};
-const getQuoteState = () => {
-  try {
-    const saved = JSON.parse(localStorage.getItem("nebula_quote_deck") || "null");
-    if (saved && Number.isInteger(saved.current) && Array.isArray(saved.deck)) {
-      return {
-        current: saved.current >= 0 && saved.current < QUOTES.length ? saved.current : 0,
-        deck: saved.deck.filter(index => Number.isInteger(index) && index >= 0 && index < QUOTES.length),
-      };
-    }
-  } catch {}
-  return { current: 0, deck: shuffledQuoteDeck(0) };
-};
 const Quote = () => {
-  const [quoteState, setQuoteState] = React.useState(getQuoteState);
-  const q = QUOTES[quoteState.current];
-  const nextQuote = () => {
-    setQuoteState(currentState => {
-      const usableDeck = currentState.deck.length ? currentState.deck : shuffledQuoteDeck(currentState.current);
-      const next = usableDeck[0];
-      const nextState = { current: next, deck: usableDeck.slice(1) };
-      localStorage.setItem("nebula_quote_deck", JSON.stringify(nextState));
-      return nextState;
-    });
-  };
+  const [i, setI] = React.useState(0);
+  const q = QUOTES[i];
   return (
     <div className="card quote">
       <div className="card-h">
@@ -951,8 +860,7 @@ const Quote = () => {
       <div className="quote-text">{q.t}</div>
       <div className="quote-author">— {q.a}</div>
       <div className="quote-foot">
-        <span className="quote-deck-count">Paquet {QUOTES.length - quoteState.deck.length}/{QUOTES.length}</span>
-        <button className="quote-shuffle" onClick={nextQuote}>
+        <button className="quote-shuffle" onClick={() => setI((i + 1) % QUOTES.length)}>
           <Icon name="shuffle" size={11} /> Nouvelle
         </button>
       </div>
@@ -1128,75 +1036,6 @@ const GoogleAccount = () => {
   );
 };
 
-const CloudAccount = () => {
-  const [tick, setTick] = React.useState(0);
-  const [busy, setBusy] = React.useState("");
-
-  React.useEffect(() => {
-    const onChange = () => setTick(t => t + 1);
-    window.addEventListener('cloud-sync-ready', onChange);
-    return () => window.removeEventListener('cloud-sync-ready', onChange);
-  }, []);
-
-  const A = window.Nebula?.auth;
-  const S = window.Nebula?.sync;
-  const connected = A?.isAuthenticated?.() || false;
-  const email = A?.getUserEmail?.() || "Compte connecte";
-
-  const run = async (label, action, reload = false) => {
-    if (!action || busy) return;
-    setBusy(label);
-    try {
-      await action();
-      setTick(t => t + 1);
-      if (reload) setTimeout(() => location.reload(), 500);
-    } catch (err) {
-      alert(err?.message || "Erreur de synchronisation");
-    } finally {
-      setBusy("");
-    }
-  };
-
-  const onConnect = () => run("connexion", async () => {
-    await A?.initAuth?.();
-    await S?.initSync?.();
-  });
-  const onPush = () => run("sauvegarde", () => S?.pushToCloud?.());
-  const onPull = () => run("restauration", () => S?.pullFromCloud?.(), true);
-  const onDisconnect = () => {
-    if (!confirm("Deconnecter le cloud Supabase ?")) return;
-    A?.signOut?.();
-  };
-
-  return (
-    <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 0" }}>
-      <div style={{ width: 32, height: 32, borderRadius: 8, background: "var(--green-soft)", border: "1px solid var(--border)", display: "grid", placeItems: "center", fontSize: 16 }}>☁</div>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 13, fontWeight: 500 }}>Cloud Supabase</div>
-        <div style={{ fontSize: 11, color: connected ? "var(--green)" : "var(--text-3)", marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-          {connected ? `● Connecte · ${email}` : "Non connecte"}
-        </div>
-      </div>
-      {connected && (
-        <>
-          <button onClick={onPush} disabled={!!busy} style={{ padding: "5px 11px", borderRadius: 7, fontSize: 11.5, fontWeight: 600, fontFamily: "inherit", cursor: "pointer", background: "var(--surface-2)", color: "var(--text-2)", border: "1px solid var(--border-strong)" }}>
-            {busy === "sauvegarde" ? "..." : "Sauver"}
-          </button>
-          <button onClick={onPull} disabled={!!busy} style={{ padding: "5px 11px", borderRadius: 7, fontSize: 11.5, fontWeight: 600, fontFamily: "inherit", cursor: "pointer", background: "var(--surface-2)", color: "var(--text-2)", border: "1px solid var(--border-strong)" }}>
-            {busy === "restauration" ? "..." : "Restaurer"}
-          </button>
-        </>
-      )}
-      <button onClick={connected ? onDisconnect : onConnect} disabled={!!busy} style={{ padding: "5px 11px", borderRadius: 7, fontSize: 11.5, fontWeight: 600, fontFamily: "inherit", cursor: "pointer",
-        background: connected ? "transparent" : "var(--accent)",
-        color: connected ? "var(--text-3)" : "white",
-        border: connected ? "1px solid var(--border-strong)" : 0 }}>
-        {connected ? "Deconnecter" : (busy === "connexion" ? "..." : "Connecter")}
-      </button>
-    </div>
-  );
-};
-
 /* === Helpers Settings — DÉFINIS HORS du composant pour éviter le remontage des inputs à chaque keystroke === */
 const SCard = ({ title, desc, children }) => (
   <div className="card" style={{ padding: 18 }}>
@@ -1248,7 +1087,7 @@ function usePersistedState(key, defaults) {
 }
 
 const SettingsView = ({ tw, setTweak }) => {
-  const [profile, setProfile] = usePersistedState('profile', { name: "Noé Lambert", email: "noe@nebula.app", tz: "Europe/Paris" });
+  const [profile, setProfile] = usePersistedState('profile', { name: "Na'îl Cadjee", email: "noe@nebula.app", tz: "Europe/Paris" });
   const [notifs,  setNotifs]  = usePersistedState('notifs',  { daily: true, weekly: true, alerts: true, marketing: false });
   const [privacy, setPrivacy] = usePersistedState('privacy', { share: true, icloud: true, autoUpdate: true });
 
@@ -1298,9 +1137,6 @@ const SettingsView = ({ tw, setTweak }) => {
         <SRow label="Citation du jour" hint="Affiche une citation sur l'accueil">
           <Toggle on={tw.showQuote} onClick={() => setTweak("showQuote", !tw.showQuote)} />
         </SRow>
-        <SRow label="Intro Nebula" hint="Joue l'animation au premier chargement">
-          <Toggle on={tw.showIntro} onClick={() => setTweak("showIntro", !tw.showIntro)} />
-        </SRow>
         <SRow label="Barre de recherche" hint="Cmd+K dans le topbar" last>
           <Toggle on={tw.showSearch} onClick={() => setTweak("showSearch", !tw.showSearch)} />
         </SRow>
@@ -1322,8 +1158,6 @@ const SettingsView = ({ tw, setTweak }) => {
       </SCard>
 
       <SCard title="Comptes connectés" desc="Sources de données externes">
-        <CloudAccount />
-        <div style={{ borderTop: "1px solid var(--border)" }} />
         <WithingsAccount />
         <div style={{ borderTop: "1px solid var(--border)" }}>
           <GoogleAccount />
@@ -1488,6 +1322,24 @@ const IntroAnimation = ({ onDone }) => {
 const App = () => {
   const [tw, setTweak] = useTweaks(TWEAK_DEFAULTS);
   const [active, setActive] = React.useState("home");
+  /* Skip intro si :
+     - mobile (≤ 600px) — perf + safety
+     - déjà vue il y a < 6h
+     - prefers-reduced-motion */
+  const [introDone, setIntroDone] = React.useState(() => {
+    try {
+      const isMobile = window.matchMedia("(max-width: 600px)").matches;
+      const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const lastSeen = window.Nebula?.storage?.get("intro_seen_at", 0) || 0;
+      const recentlySeen = Date.now() - lastSeen < 6 * 3600 * 1000;
+      return isMobile || reducedMotion || recentlySeen;
+    } catch { return true; }
+  });
+  const handleIntroDone = React.useCallback(() => {
+    try { window.Nebula?.storage?.set("intro_seen_at", Date.now()); } catch {}
+    setIntroDone(true);
+  }, []);
+
   React.useEffect(() => {
     document.documentElement.dataset.theme = tw.theme;
   }, [tw.theme]);
@@ -1510,6 +1362,7 @@ const App = () => {
 
   return (
     <>
+      {!introDone && <IntroAnimation onDone={handleIntroDone} />}
     <div className="app" data-view={active}>
       <Sidebar active={active} setActive={setActive} theme={tw.theme} toggleTheme={toggleTheme} />
       <main className="main">
