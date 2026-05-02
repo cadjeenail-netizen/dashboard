@@ -1036,6 +1036,38 @@ const GoogleAccount = () => {
   );
 };
 
+/* === Helpers Settings — DÉFINIS HORS du composant pour éviter le remontage des inputs à chaque keystroke === */
+const SCard = ({ title, desc, children }) => (
+  <div className="card" style={{ padding: 18 }}>
+    <div style={{ marginBottom: 12 }}>
+      <div style={{ fontFamily: "Inter Tight, sans-serif", fontSize: 15, fontWeight: 600, letterSpacing: "-0.01em" }}>{title}</div>
+      {desc && <div style={{ fontSize: 12, color: "var(--text-3)", marginTop: 3 }}>{desc}</div>}
+    </div>
+    {children}
+  </div>
+);
+const SRow = ({ label, hint, children, last }) => (
+  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 0", borderBottom: last ? 0 : "1px solid var(--border)" }}>
+    <div style={{ minWidth: 0, paddingRight: 12 }}>
+      <div style={{ fontSize: 13, fontWeight: 500 }}>{label}</div>
+      {hint && <div style={{ fontSize: 11, color: "var(--text-3)", marginTop: 2 }}>{hint}</div>}
+    </div>
+    <div style={{ flexShrink: 0 }}>{children}</div>
+  </div>
+);
+const SToggle = ({ on, onClick }) => (
+  <button onClick={onClick}
+    style={{ width: 36, height: 20, borderRadius: 999, border: 0, padding: 0, position: "relative",
+      background: on ? "var(--accent)" : "var(--surface-2)", cursor: "pointer", transition: "all 0.2s" }}>
+    <span style={{ position: "absolute", top: 2, left: on ? 18 : 2, width: 16, height: 16, borderRadius: "50%",
+      background: "white", boxShadow: "0 1px 3px rgba(0,0,0,0.2)", transition: "left 0.2s" }} />
+  </button>
+);
+const SField = ({ value, onChange, type = "text" }) => (
+  <input type={type} value={value} onChange={e => onChange(e.target.value)}
+    style={{ background: "var(--surface-2)", border: "1px solid var(--border-strong)", borderRadius: 8, padding: "6px 10px", fontSize: 12.5, color: "var(--text)", fontFamily: "inherit", outline: "none", width: 200, textAlign: "right" }} />
+);
+
 /* === Settings === */
 
 /* Helper : useState persisté via storage.js */
@@ -1059,36 +1091,9 @@ const SettingsView = ({ tw, setTweak }) => {
   const [notifs,  setNotifs]  = usePersistedState('notifs',  { daily: true, weekly: true, alerts: true, marketing: false });
   const [privacy, setPrivacy] = usePersistedState('privacy', { share: true, icloud: true, autoUpdate: true });
 
-  const SCard = ({ title, desc, children }) => (
-    <div className="card" style={{ padding: 18 }}>
-      <div style={{ marginBottom: 12 }}>
-        <div style={{ fontFamily: "Inter Tight, sans-serif", fontSize: 15, fontWeight: 600, letterSpacing: "-0.01em" }}>{title}</div>
-        {desc && <div style={{ fontSize: 12, color: "var(--text-3)", marginTop: 3 }}>{desc}</div>}
-      </div>
-      {children}
-    </div>
-  );
-  const SRow = ({ label, hint, children, last }) => (
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 0", borderBottom: last ? 0 : "1px solid var(--border)" }}>
-      <div style={{ minWidth: 0, paddingRight: 12 }}>
-        <div style={{ fontSize: 13, fontWeight: 500 }}>{label}</div>
-        {hint && <div style={{ fontSize: 11, color: "var(--text-3)", marginTop: 2 }}>{hint}</div>}
-      </div>
-      <div style={{ flexShrink: 0 }}>{children}</div>
-    </div>
-  );
-  const Toggle = ({ on, onClick }) => (
-    <button onClick={onClick}
-      style={{ width: 36, height: 20, borderRadius: 999, border: 0, padding: 0, position: "relative",
-        background: on ? "var(--accent)" : "var(--surface-2)", cursor: "pointer", transition: "all 0.2s" }}>
-      <span style={{ position: "absolute", top: 2, left: on ? 18 : 2, width: 16, height: 16, borderRadius: "50%",
-        background: "white", boxShadow: "0 1px 3px rgba(0,0,0,0.2)", transition: "left 0.2s" }} />
-    </button>
-  );
-  const Field = ({ value, onChange, type = "text" }) => (
-    <input type={type} value={value} onChange={e => onChange(e.target.value)}
-      style={{ background: "var(--surface-2)", border: "1px solid var(--border-strong)", borderRadius: 8, padding: "6px 10px", fontSize: 12.5, color: "var(--text)", fontFamily: "inherit", outline: "none", width: 200, textAlign: "right" }} />
-  );
+  /* (helpers SCard/SRow/SToggle/SField sont maintenant définis hors du composant) */
+  const Toggle = SToggle;
+  const Field = SField;
 
   return (
     <div className="settings-view" style={{ gridColumn: "1 / -1", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>

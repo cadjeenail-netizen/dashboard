@@ -1190,6 +1190,8 @@ body {
 /* ═══════════════════════════════════════════════════════════
    RESPONSIVE — TABLETTE (≤ 900px)
    Sidebar en barre horizontale en haut
+   FIX CRITIQUE : reset flex:1 sur .grid et .chart-canvas pour
+   éviter la boucle ResizeObserver qui faisait 12000px de haut
 ═══════════════════════════════════════════════════════════ */
 @media (max-width: 900px) {
   .app {
@@ -1213,11 +1215,31 @@ body {
   .grid {
     grid-template-columns: 1fr;
     grid-template-rows: auto;
+    grid-auto-rows: min-content;
     padding: 0 14px 14px;
+    flex: none;
   }
   .grid > .card {
     grid-column: 1 / -1 !important;
     grid-row: auto !important;
+  }
+  /* Casse la boucle de feedback ResizeObserver des charts */
+  .chart-canvas {
+    flex: none !important;
+    height: 220px !important;
+    min-height: 0 !important;
+  }
+  .charts-row {
+    flex: none !important;
+    grid-template-rows: auto !important;
+    grid-template-columns: 1fr !important;
+  }
+  .prod-body {
+    max-height: 360px;
+    flex: none;
+  }
+  .productivity {
+    max-height: none;
   }
 }
 
@@ -1314,12 +1336,14 @@ body {
     order: 3;
   }
 
-  /* ── Grid : 1 colonne, padding réduit ── */
+  /* ── Grid : 1 colonne, padding réduit, FLEX RESET ── */
   .grid {
     grid-template-columns: 1fr !important;
     grid-template-rows: auto !important;
+    grid-auto-rows: min-content !important;
     gap: 10px;
     padding: 0 12px 14px;
+    flex: none !important;
   }
   .grid > .card {
     grid-column: 1 !important;
@@ -1352,13 +1376,22 @@ body {
   .metric .l { font-size: 9px; }
   .metric .delta { font-size: 9.5px; }
 
-  /* Charts row : empilé en mobile */
+  /* Charts row : empilé en mobile + RESET FLEX (anti boucle) */
   .charts-row {
     grid-template-columns: 1fr !important;
+    grid-template-rows: auto !important;
     gap: 8px;
+    flex: none !important;
   }
-  .chart-card { padding: 10px; }
-  .chart-canvas { min-height: 140px; }
+  .chart-card {
+    padding: 10px;
+    flex: none !important;
+  }
+  .chart-canvas {
+    flex: none !important;
+    height: 180px !important;
+    min-height: 0 !important;
+  }
 
   /* ── Productivity ── */
   .prod-tab { font-size: 11px; padding: 5px 4px; gap: 3px; }
