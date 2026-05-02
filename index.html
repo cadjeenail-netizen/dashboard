@@ -12,6 +12,20 @@
   <title>Nebula — Dashboard</title>
   <link rel="icon" type="image/svg+xml" href="assets/img/nebula-logo.svg" />
 
+  <script>
+    (() => {
+      const params = new URLSearchParams(window.location.search);
+      const isReturningFromIntro = params.get("intro") === "done";
+      const isOAuthCallback = params.has("code") || params.has("state");
+      const introSeen = sessionStorage.getItem("nebula_intro_seen") === "1";
+
+      if (!isReturningFromIntro && !isOAuthCallback && !introSeen) {
+        sessionStorage.setItem("nebula_intro_seen", "1");
+        window.location.replace("agents-ia-intro.html");
+      }
+    })();
+  </script>
+
   <!-- Google Fonts (Geist + Inter Tight + JetBrains Mono comme Geist Mono fallback) -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
