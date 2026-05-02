@@ -1234,6 +1234,12 @@ body {
     grid-template-rows: auto !important;
     grid-template-columns: 1fr !important;
   }
+  /* MÊME bug que .chart-canvas — le GroupedBar de Finances */
+  .fin-chart {
+    flex: none !important;
+    height: 220px !important;
+    min-height: 0 !important;
+  }
   .prod-body {
     max-height: 360px;
     flex: none;
@@ -1256,16 +1262,22 @@ body {
     min-height: 100vh;
   }
 
-  /* ── Sidebar → bottom tab bar fixe ── */
+  /* ── Sidebar → bottom tab bar fixe ──
+     !important nécessaire car height:100vh du desktop persiste sinon */
   .sidebar {
-    order: 99;
-    position: fixed;
-    bottom: 0; left: 0; right: 0;
-    height: auto;
-    flex-direction: row;
+    order: 99 !important;
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    top: auto !important;
+    height: auto !important;
+    max-height: 76px !important;
+    min-height: 0 !important;
+    flex-direction: row !important;
     justify-content: space-around;
     align-items: center;
-    padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
+    padding: 6px 4px calc(6px + env(safe-area-inset-bottom)) !important;
     border-right: 0;
     border-top: 1px solid var(--border-strong);
     background: rgba(255,255,255,0.92);
@@ -1273,7 +1285,8 @@ body {
     -webkit-backdrop-filter: blur(20px);
     box-shadow: 0 -4px 20px rgba(20,18,56,0.06);
     z-index: 100;
-    overflow: visible;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
   }
   [data-theme="dark"] .sidebar {
     background: rgba(11,10,20,0.92);
@@ -1388,6 +1401,12 @@ body {
     flex: none !important;
   }
   .chart-canvas {
+    flex: none !important;
+    height: 180px !important;
+    min-height: 0 !important;
+  }
+  /* Finances chart — même bug que .chart-canvas */
+  .fin-chart {
     flex: none !important;
     height: 180px !important;
     min-height: 0 !important;
