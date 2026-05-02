@@ -1285,11 +1285,14 @@ const IntroAnimation = ({ onDone }) => {
   React.useEffect(() => {
     const t1 = setTimeout(() => setPhase("exploding"), 1800);
     const t2 = setTimeout(() => { setPhase("done"); onDone?.(); }, 3300);
-    return () => { clearTimeout(t1); clearTimeout(t2); };
+    /* Filet de sécurité : si pour une raison X le timer rate, on dégage l'intro */
+    const safety = setTimeout(() => { setPhase("done"); onDone?.(); }, 6000);
+    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(safety); };
   }, []);
+  const skip = () => { setPhase("done"); onDone?.(); };
   if (phase === "done") return null;
   return (
-    <div className={`intro-overlay intro-${phase}`}>
+    <div className={`intro-overlay intro-${phase}`} onClick={skip}>
       <div className="intro-stars" />
       <div className="intro-glow" />
       <div className="intro-planet">
@@ -1305,6 +1308,7 @@ const IntroAnimation = ({ onDone }) => {
         </div>
       )}
       <div className="intro-title">Nebula</div>
+      <div className="intro-skip">Tape pour passer</div>
     </div>
   );
 };
@@ -1313,7 +1317,23 @@ const IntroAnimation = ({ onDone }) => {
 const App = () => {
   const [tw, setTweak] = useTweaks(TWEAK_DEFAULTS);
   const [active, setActive] = React.useState("home");
-  const [introDone, setIntroDone] = React.useState(false);
+  /* Skip intro si :
+     - mobile (≤ 600px) — perf + safety
+     - déjà vue il y a < 6h
+     - prefers-reduced-motion */
+  const [introDone, setIntroDone] = React.useState(() => {
+    try {
+      const isMobile = window.matchMedia("(max-width: 600px)").matches;
+      const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const lastSeen = window.Nebula?.storage?.get("intro_seen_at", 0) || 0;
+      const recentlySeen = Date.now() - lastSeen < 6 * 3600 * 1000;
+      return isMobile || reducedMotion || recentlySeen;
+    } catch { return true; }
+  });
+  const handleIntroDone = React.useCallback(() => {
+    try { window.Nebula?.storage?.set("intro_seen_at", Date.now()); } catch {}
+    setIntroDone(true);
+  }, []);
 
   React.useEffect(() => {
     document.documentElement.dataset.theme = tw.theme;
@@ -1337,8 +1357,8 @@ const App = () => {
 
   return (
     <>
-      {!introDone && <IntroAnimation onDone={() => setIntroDone(true)} />}
-    <div className={`app ${introDone ? "app-revealed" : "app-hidden"}`} data-view={active}>
+      {!introDone && <IntroAnimation onDone={handleIntroDone} />}
+    <div className="app" data-view={active}>
       <Sidebar active={active} setActive={setActive} theme={tw.theme} toggleTheme={toggleTheme} />
       <main className="main">
         <Topbar tw={tw} active={active} setActive={setActive} />

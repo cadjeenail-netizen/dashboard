@@ -1165,18 +1165,26 @@ body {
   to { opacity: 0; visibility: hidden; }
 }
 
-/* App caché pendant l'intro, révélé après */
-.app-hidden { opacity: 0; visibility: hidden; }
-.app-revealed { animation: intro-app-reveal 0.7s cubic-bezier(0.2, 0.7, 0.3, 1) forwards; }
-@keyframes intro-app-reveal {
-  0%   { opacity: 0; transform: scale(0.96); filter: blur(8px); }
-  100% { opacity: 1; transform: scale(1);    filter: blur(0); }
+/* Bouton "skip" en bas de l'intro */
+.intro-skip {
+  position: absolute;
+  bottom: 6%;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.45);
+  font-weight: 500;
+  opacity: 0;
+  animation: intro-skip-appear 0.5s ease 1s forwards;
+  pointer-events: auto;
+  cursor: pointer;
 }
+.intro-overlay { pointer-events: auto; cursor: pointer; }
+@keyframes intro-skip-appear { to { opacity: 1; } }
 
 /* Skip intro si l'utilisateur préfère reduce motion */
 @media (prefers-reduced-motion: reduce) {
   .intro-overlay { display: none; }
-  .app-hidden { opacity: 1; visibility: visible; }
 }
 
 /* ═══════════════════════════════════════════════════════════
