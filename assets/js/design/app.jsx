@@ -388,8 +388,8 @@ const Health = () => {
   })();
 
   return (
-    <div className="card health">
-      <div className="card-h">
+    <section className="health health-board">
+      <div className="health-head">
         <span className="title section-label"><Icon name="health" size={11} /> Santé</span>
         <span style={{ display: "inline-flex", alignItems: "center", gap: 5, marginLeft: 4 }}>
           <span className="connected-dot" style={{ background: wd.connected ? "var(--green)" : "var(--text-3)", boxShadow: wd.connected ? "0 0 0 3px var(--green-soft)" : "none" }} />
@@ -486,7 +486,7 @@ const Health = () => {
           </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 };
 
@@ -539,7 +539,7 @@ const SleepStages = () => {
 /* === Productivity (tabs: Habits / Goals / Tasks) === */
 const Productivity = () => {
   const [tab, setTab] = React.useState("habits");
-  const [editMode, setEditMode] = React.useState(false);
+  const [editMode, setEditMode] = React.useState(true);
 
   const [habits, setHabits] = React.useState([
     { name: "Sport",     icon: "🏃",  color: "var(--accent)",  days: [1,1,0,1,1,0,1], streak: 4 },
@@ -698,7 +698,7 @@ const Productivity = () => {
             </div>
             {tasks.map((t, i) => (
               <div key={i} className={`task-row ${t.done ? "done" : ""}`} onClick={() => !editMode && toggleTask(i)}>
-                <div className="task-check">{t.done && <Icon name="check" size={11} />}</div>
+                <div className="task-check" onClick={e => { e.stopPropagation(); toggleTask(i); }}>{t.done && <Icon name="check" size={11} />}</div>
                 <span className={`task-prio ${t.prio}`} />
                 {editMode ? (
                   <input value={t.name}
@@ -763,7 +763,7 @@ const Finances = () => {
         <span className="title section-label"><Icon name="finances" size={11} /> Finances</span>
         <span className="spacer" />
         <span className="pill" style={{ background: "var(--green-soft)", color: "var(--green)" }}>+12% ce mois</span>
-        <button className="ghost-btn" style={{ marginLeft: 6 }}>Avril 2026</button>
+        <button className="ghost-btn" style={{ marginLeft: 6 }}>Modifiable</button>
       </div>
 
       <div className="fin-head">
@@ -791,6 +791,30 @@ const Finances = () => {
         <GroupedBar months={months} income={income} expense={expense} fmt={(v) => `${(v/1000).toFixed(1)}k`} />
       </div>
 
+      <div className="finance-edit-grid">
+        {months.map((month, index) => (
+          <div className="finance-edit-month" key={month}>
+            <div className="finance-edit-label">{month}</div>
+            <label>
+              <span>Revenus</span>
+              <input
+                type="number"
+                value={income[index]}
+                onChange={e => setI(index, Number(e.target.value) || 0)}
+              />
+            </label>
+            <label>
+              <span>Depenses</span>
+              <input
+                type="number"
+                value={expense[index]}
+                onChange={e => setE(index, Number(e.target.value) || 0)}
+              />
+            </label>
+          </div>
+        ))}
+      </div>
+
       <div className="fin-foot">
         <span className="legend-dot" style={{ background: "var(--green)" }} />
         <span>Revenus</span>
@@ -807,19 +831,40 @@ const Finances = () => {
 
 /* === Agenda === */
 const Agenda = () => {
-  const events = [
+  const [events, setEvents] = React.useState([
     { time: "09:00", name: "Stand-up équipe", meta: "30 min · Visio", color: "var(--accent)" },
     { time: "11:30", name: "Déjeuner Camille", meta: "Restaurant Aloha", color: "var(--pink)" },
     { time: "14:00", name: "Revue de design", meta: "Salle Pluton", color: "var(--blue)" },
     { time: "16:30", name: "Course longue", meta: "10 km · Plage", color: "var(--green)", current: true },
     { time: "19:00", name: "Yoga", meta: "Studio Sereno", color: "var(--amber)" },
-  ];
+  ]);
+  const addEvent = () => {
+    const time = prompt("Heure de l'evenement", "18:00");
+    if (!time) return;
+    const name = prompt("Nom de l'evenement", "Nouvel evenement");
+    if (!name) return;
+    const meta = prompt("Details", "30 min");
+    setEvents(prev => [...prev, { time, name, meta: meta || "", color: "var(--accent)" }]);
+  };
+  const editEvent = (i) => {
+    const current = events[i];
+    const time = prompt("Heure", current.time);
+    if (!time) return;
+    const name = prompt("Nom", current.name);
+    if (!name) return;
+    const meta = prompt("Details", current.meta);
+    setEvents(prev => prev.map((event, index) => index === i ? { ...event, time, name, meta: meta || "" } : event));
+  };
+  const deleteEvent = (i) => {
+    if (!confirm("Supprimer cet evenement ?")) return;
+    setEvents(prev => prev.filter((_, index) => index !== i));
+  };
   return (
     <div className="card agenda">
       <div className="card-h">
         <span className="title section-label"><Icon name="agenda" size={11} /> Agenda · Aujourd'hui</span>
         <span className="spacer" />
-        <button className="ghost-btn"><Icon name="plus" size={11} /> Ajouter</button>
+        <button className="ghost-btn" onClick={addEvent}><Icon name="plus" size={11} /> Ajouter</button>
       </div>
 
       <div className="agenda-now">
@@ -835,6 +880,10 @@ const Agenda = () => {
             <div className="ev-name">{e.name}</div>
             <div className="ev-meta">{e.meta}</div>
           </div>
+          <div className="agenda-actions">
+            <button onClick={() => editEvent(i)}>Modifier</button>
+            <button onClick={() => deleteEvent(i)}>Suppr.</button>
+          </div>
         </div>
       ))}
     </div>
@@ -848,9 +897,38 @@ const QUOTES = [
   { t: "La meilleure façon de prédire l'avenir, c'est de le créer.", a: "Peter Drucker" },
   { t: "On ne voit bien qu'avec le cœur. L'essentiel est invisible pour les yeux.", a: "Antoine de Saint-Exupéry" },
 ];
+const shuffledQuoteDeck = (exclude) => {
+  const deck = QUOTES.map((_, index) => index).filter(index => index !== exclude);
+  for (let i = deck.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [deck[i], deck[j]] = [deck[j], deck[i]];
+  }
+  return deck;
+};
+const getQuoteState = () => {
+  try {
+    const saved = JSON.parse(localStorage.getItem("nebula_quote_deck") || "null");
+    if (saved && Number.isInteger(saved.current) && Array.isArray(saved.deck)) {
+      return {
+        current: saved.current >= 0 && saved.current < QUOTES.length ? saved.current : 0,
+        deck: saved.deck.filter(index => Number.isInteger(index) && index >= 0 && index < QUOTES.length),
+      };
+    }
+  } catch {}
+  return { current: 0, deck: shuffledQuoteDeck(0) };
+};
 const Quote = () => {
-  const [i, setI] = React.useState(0);
-  const q = QUOTES[i];
+  const [quoteState, setQuoteState] = React.useState(getQuoteState);
+  const q = QUOTES[quoteState.current];
+  const nextQuote = () => {
+    setQuoteState(currentState => {
+      const usableDeck = currentState.deck.length ? currentState.deck : shuffledQuoteDeck(currentState.current);
+      const next = usableDeck[0];
+      const nextState = { current: next, deck: usableDeck.slice(1) };
+      localStorage.setItem("nebula_quote_deck", JSON.stringify(nextState));
+      return nextState;
+    });
+  };
   return (
     <div className="card quote">
       <div className="card-h">
@@ -860,7 +938,8 @@ const Quote = () => {
       <div className="quote-text">{q.t}</div>
       <div className="quote-author">— {q.a}</div>
       <div className="quote-foot">
-        <button className="quote-shuffle" onClick={() => setI((i + 1) % QUOTES.length)}>
+        <span className="quote-deck-count">Paquet {QUOTES.length - quoteState.deck.length}/{QUOTES.length}</span>
+        <button className="quote-shuffle" onClick={nextQuote}>
           <Icon name="shuffle" size={11} /> Nouvelle
         </button>
       </div>

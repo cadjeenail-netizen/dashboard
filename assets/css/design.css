@@ -1466,3 +1466,685 @@ body {
   .weather-stats { grid-template-columns: repeat(2, 1fr); }
   .clock { display: none; }
 }
+
+/* ============ Visual refresh: cleaner dashboard polish ============ */
+:root {
+  --bg: #f6f7fb;
+  --bg-grad-1: #e7f0ff;
+  --bg-grad-2: #fff7ed;
+  --surface: rgba(255, 255, 255, 0.86);
+  --surface-2: rgba(248, 250, 252, 0.92);
+  --surface-elev: rgba(255, 255, 255, 0.96);
+  --border: rgba(24, 32, 56, 0.08);
+  --border-strong: rgba(24, 32, 56, 0.14);
+  --text: #141827;
+  --text-2: #4d566d;
+  --text-3: #8a93a8;
+  --muted: #b7bdca;
+  --shadow-sm: 0 1px 2px rgba(19, 24, 38, 0.05), 0 4px 12px rgba(19, 24, 38, 0.04);
+  --shadow-md: 0 10px 28px rgba(19, 24, 38, 0.08);
+  --shadow-lg: 0 18px 44px rgba(19, 24, 38, 0.12);
+  --accent: #5b6cff;
+  --accent-2: #6ed3d1;
+  --accent-soft: rgba(91, 108, 255, 0.12);
+  --green: #16a36b;
+  --green-soft: rgba(22, 163, 107, 0.12);
+  --blue: #0ea5c6;
+  --blue-soft: rgba(14, 165, 198, 0.13);
+  --amber: #d98909;
+  --amber-soft: rgba(217, 137, 9, 0.14);
+  --pink: #e25593;
+  --pink-soft: rgba(226, 85, 147, 0.13);
+  --radius: 14px;
+  --radius-lg: 18px;
+}
+
+[data-theme="dark"] {
+  --bg: #090c12;
+  --bg-grad-1: #102033;
+  --bg-grad-2: #171226;
+  --surface: rgba(18, 23, 34, 0.84);
+  --surface-2: rgba(25, 31, 45, 0.82);
+  --surface-elev: rgba(30, 37, 53, 0.94);
+  --border: rgba(226, 232, 240, 0.08);
+  --border-strong: rgba(226, 232, 240, 0.14);
+  --text: #f4f7fb;
+  --text-2: #b2bdd0;
+  --text-3: #79859a;
+  --muted: #576176;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.34), 0 4px 14px rgba(0, 0, 0, 0.24);
+  --shadow-md: 0 12px 32px rgba(0, 0, 0, 0.34);
+  --shadow-lg: 0 22px 54px rgba(0, 0, 0, 0.44);
+  --accent: #8ca0ff;
+  --accent-2: #6ed3d1;
+  --accent-soft: rgba(140, 160, 255, 0.16);
+  --blue: #67d8f0;
+  --amber: #f3b74c;
+  --pink: #ff8cbe;
+}
+
+body {
+  background:
+    linear-gradient(135deg, var(--bg) 0%, var(--bg-grad-1) 45%, var(--bg-grad-2) 100%);
+}
+
+.app {
+  background:
+    radial-gradient(900px 560px at -12% -10%, rgba(91, 108, 255, 0.18), transparent 62%),
+    radial-gradient(760px 520px at 106% 12%, rgba(110, 211, 209, 0.16), transparent 58%),
+    linear-gradient(135deg, var(--bg), color-mix(in srgb, var(--bg), var(--surface-2) 42%));
+}
+
+.sidebar {
+  background: color-mix(in srgb, var(--surface), transparent 6%);
+  backdrop-filter: blur(22px) saturate(1.16);
+  -webkit-backdrop-filter: blur(22px) saturate(1.16);
+  border-right-color: var(--border-strong);
+}
+
+.brand-mark {
+  background:
+    radial-gradient(circle at 30% 28%, rgba(255, 255, 255, 0.75), transparent 42%),
+    conic-gradient(from 210deg, var(--accent), var(--accent-2), var(--amber), var(--pink), var(--accent));
+}
+
+.nav-item {
+  border-radius: 11px;
+}
+
+.nav-item:hover {
+  background: color-mix(in srgb, var(--surface-2), var(--accent-soft) 30%);
+}
+
+.nav-item.active {
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--accent-soft), white 24%), rgba(110, 211, 209, 0.12));
+  border-color: color-mix(in srgb, var(--accent), transparent 70%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.58), 0 8px 18px rgba(91, 108, 255, 0.10);
+}
+
+[data-theme="dark"] .nav-item.active {
+  background: linear-gradient(135deg, rgba(140, 160, 255, 0.18), rgba(110, 211, 209, 0.10));
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 6;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--bg), transparent 4%) 0%, transparent 100%);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.greet h1 {
+  letter-spacing: -0.015em;
+}
+
+.search,
+.clock,
+.icon-btn,
+.sidebar-foot {
+  background: color-mix(in srgb, var(--surface-elev), transparent 8%);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.grid {
+  gap: 16px;
+}
+
+.card {
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-elev), transparent 3%), var(--surface));
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-md);
+  border-radius: var(--radius);
+}
+
+.card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.42), transparent 34%),
+    radial-gradient(320px 140px at 0% 0%, rgba(91, 108, 255, 0.10), transparent 65%);
+  opacity: 0.75;
+}
+
+[data-theme="dark"] .card::before {
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.08), transparent 34%),
+    radial-gradient(340px 150px at 0% 0%, rgba(140, 160, 255, 0.12), transparent 66%);
+}
+
+.card:hover {
+  transform: translateY(-2px);
+}
+
+.card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.metric,
+.chart-card,
+.weather-stat,
+.task-row,
+.agenda-day,
+.finance-box,
+.prod-tabs,
+.tabs {
+  background: color-mix(in srgb, var(--surface-2), transparent 2%);
+  border-color: var(--border);
+}
+
+.welcome,
+.view-hero {
+  background:
+    linear-gradient(135deg, rgba(91, 108, 255, 0.14), rgba(110, 211, 209, 0.10)),
+    var(--surface);
+}
+
+.score-circle {
+  background: conic-gradient(var(--accent) calc(var(--p, 72) * 1%), rgba(110, 211, 209, 0.18) 0);
+  box-shadow: 0 10px 28px rgba(91, 108, 255, 0.16);
+}
+
+.app[data-view="health"] .grid {
+  grid-template-rows: 160px auto;
+  align-items: start;
+}
+
+.app[data-view="health"] .health {
+  min-height: 620px;
+  height: auto;
+  overflow: hidden;
+}
+
+.app[data-view="health"] .charts-row {
+  flex: none;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  min-height: 210px;
+  width: 100%;
+  overflow: hidden;
+}
+
+.app[data-view="health"] .chart-card {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.app[data-view="health"] .chart-canvas {
+  min-height: 150px;
+  width: 100%;
+  min-width: 0;
+}
+
+.app[data-view="health"] .tabs {
+  flex-shrink: 0;
+  max-width: 100%;
+}
+
+.app[data-view="health"] .tab {
+  white-space: nowrap;
+}
+
+.app[data-view="health"] .weather {
+  align-self: start;
+}
+
+.weather-temp,
+.fin-balance .v,
+.score-val b,
+.metric .v {
+  letter-spacing: -0.025em;
+}
+
+.weather {
+  align-items: stretch;
+  justify-content: space-between;
+}
+
+.weather .card-h {
+  margin-bottom: 4px;
+}
+
+.weather-row {
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  min-height: 74px;
+  flex: 1;
+}
+
+.weather-row > div:first-child {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.weather-icon {
+  margin-left: 10px;
+}
+
+.weather-stats {
+  margin-top: auto;
+}
+
+.quote {
+  justify-content: space-between;
+  overflow: hidden;
+}
+
+.quote .card-h {
+  margin-bottom: 2px;
+}
+
+.quote-mark {
+  height: 10px;
+  font-size: 46px;
+}
+
+.quote-text {
+  flex: 0 1 auto;
+  max-width: 100%;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin: auto 0;
+}
+
+.quote-author {
+  flex-shrink: 0;
+}
+
+.quote-foot {
+  flex-shrink: 0;
+  padding-top: 8px;
+}
+
+.quote-deck-count {
+  font-size: 10.5px;
+  color: var(--text-3);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.finance-edit-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.finance-edit-month {
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  border-radius: 10px;
+  padding: 8px;
+  min-width: 0;
+}
+
+.finance-edit-label {
+  font-size: 10px;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.finance-edit-month label {
+  display: grid;
+  grid-template-columns: 1fr minmax(0, 72px);
+  align-items: center;
+  gap: 6px;
+  margin-top: 5px;
+  font-size: 10.5px;
+  color: var(--text-2);
+}
+
+.finance-edit-month input {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--border-strong);
+  border-radius: 7px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 6px;
+  outline: none;
+}
+
+.finance-edit-month input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.app[data-view="finances"] .grid {
+  grid-template-rows: 160px minmax(720px, auto);
+  align-items: start;
+}
+
+.app[data-view="finances"] .finances {
+  min-height: 720px;
+  height: auto;
+  overflow: visible;
+}
+
+.app[data-view="finances"] .fin-chart {
+  flex: none;
+  height: 260px;
+  min-height: 260px;
+  margin: 10px 0 14px;
+}
+
+.app[data-view="finances"] .finance-edit-grid {
+  margin-top: 4px;
+}
+
+.app[data-view="finances"] .quote {
+  align-self: start;
+}
+
+.app[data-view="home"] .finance-edit-grid {
+  display: none;
+}
+
+.agenda-actions {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.agenda-actions button {
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--text-2);
+  border-radius: 7px;
+  padding: 4px 7px;
+  font-family: inherit;
+  font-size: 10.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.agenda-actions button:last-child {
+  color: var(--red);
+}
+
+.productivity input,
+.task-input input {
+  min-height: 30px;
+}
+
+.intro-overlay {
+  background:
+    radial-gradient(ellipse at 48% 42%, rgba(91, 108, 255, 0.36), transparent 42%),
+    radial-gradient(ellipse at center, #111827 0%, #090c12 62%, #05070b 100%);
+}
+
+@media (max-width: 900px) {
+  .topbar {
+    position: relative;
+  }
+
+  .sidebar {
+    background: color-mix(in srgb, var(--surface), transparent 4%);
+  }
+}
+
+@media (max-width: 600px) {
+  .sidebar {
+    background: rgba(255, 255, 255, 0.86) !important;
+    box-shadow: 0 -12px 36px rgba(19, 24, 38, 0.12);
+  }
+
+  [data-theme="dark"] .sidebar {
+    background: rgba(9, 12, 18, 0.88) !important;
+  }
+
+  .nav-item.active {
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  }
+
+  .grid {
+    gap: 12px;
+  }
+
+  .card {
+    border-radius: 13px;
+  }
+}
+
+/* ============ Health board rebuild ============ */
+.health-board {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 14px;
+  min-width: 0;
+  min-height: 0;
+}
+
+.health-head {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 14px 16px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--surface-elev), transparent 4%), color-mix(in srgb, var(--surface), transparent 8%)),
+    radial-gradient(520px 180px at 0% 0%, rgba(91, 108, 255, 0.10), transparent 70%);
+  box-shadow: var(--shadow-sm);
+}
+
+.health-head .title {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  color: var(--text-2);
+}
+
+.health-board .metrics-row {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(120px, 1fr));
+  gap: 12px;
+  margin: 0;
+  min-width: 0;
+}
+
+.health-board .metric {
+  min-width: 0;
+  min-height: 106px;
+  padding: 14px 16px;
+  border-radius: var(--radius);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-elev), transparent 2%), var(--surface));
+  border: 1px solid var(--border-strong);
+  box-shadow: var(--shadow-sm);
+}
+
+.health-board .metric .l {
+  font-size: 10px;
+  color: var(--text-3);
+}
+
+.health-board .metric .v {
+  font-size: 28px;
+  line-height: 1.05;
+}
+
+.health-board .metric .delta {
+  font-size: 12px;
+}
+
+.health-board .charts-row {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(260px, 0.85fr);
+  gap: 14px;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: visible;
+}
+
+.health-board .chart-card {
+  min-width: 0;
+  min-height: 260px;
+  padding: 16px;
+  border-radius: var(--radius);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-elev), transparent 2%), var(--surface));
+  border: 1px solid var(--border-strong);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.health-board .chart-card > div:first-child {
+  gap: 12px;
+  min-width: 0;
+}
+
+.health-board .chart-canvas {
+  flex: none;
+  height: 190px;
+  min-height: 190px;
+  min-width: 0;
+  width: 100%;
+}
+
+.health-board .tabs {
+  flex-shrink: 0;
+  max-width: 100%;
+}
+
+.health-board .tab {
+  white-space: nowrap;
+}
+
+.app[data-view="health"] .grid {
+  grid-template-rows: auto;
+  grid-auto-rows: min-content;
+  align-items: start;
+}
+
+.app[data-view="health"] .view-hero {
+  grid-column: 1 / -1;
+  grid-row: auto;
+}
+
+.app[data-view="health"] .health-board {
+  grid-column: 1 / -1;
+  grid-row: auto;
+}
+
+.app[data-view="health"] .weather {
+  display: none;
+}
+
+.app[data-view="home"] .health-board {
+  height: 100%;
+  overflow: hidden;
+}
+
+.app[data-view="home"] .health-board .health-head,
+.app[data-view="home"] .health-board .charts-row + .charts-row {
+  display: none;
+}
+
+.app[data-view="home"] .health-board .metrics-row {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.app[data-view="home"] .health-board .metric {
+  min-height: 78px;
+  padding: 9px 11px;
+}
+
+.app[data-view="home"] .health-board .metric .v {
+  font-size: 18px;
+}
+
+.app[data-view="home"] .health-board .charts-row {
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 0.9fr);
+  gap: 10px;
+}
+
+.app[data-view="home"] .health-board .chart-card {
+  min-height: 150px;
+  padding: 11px 12px;
+}
+
+.app[data-view="home"] .health-board .chart-canvas {
+  height: 88px;
+  min-height: 88px;
+}
+
+@media (max-width: 1100px) {
+  .health-board .metrics-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .health-board .charts-row {
+    grid-template-columns: 1fr;
+  }
+
+  .health-board .chart-card {
+    min-height: 240px;
+  }
+}
+
+@media (max-width: 700px) {
+  .health-head {
+    flex-wrap: wrap;
+  }
+
+  .health-head .spacer {
+    display: none;
+  }
+
+  .health-board .metrics-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .health-board .metric {
+    min-height: 92px;
+    padding: 12px;
+  }
+
+  .health-board .metric .v {
+    font-size: 23px;
+  }
+
+  .health-board .chart-card {
+    min-height: 230px;
+  }
+
+  .health-board .chart-card > div:first-child {
+    flex-direction: column;
+  }
+
+  .health-board .chart-card > div:first-child .tabs {
+    margin-left: 0 !important;
+    width: 100%;
+  }
+
+  .health-board .chart-card > div:first-child .tab {
+    flex: 1;
+  }
+}
