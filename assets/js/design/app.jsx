@@ -982,17 +982,82 @@ const WithingsAccount = () => {
   );
 };
 
+/* === Compte Google Calendar (réel) === */
+const GoogleAccount = () => {
+  const [tick, setTick] = React.useState(0);
+  React.useEffect(() => {
+    const onChange = () => setTick(t => t + 1);
+    window.addEventListener('google-connected', onChange);
+    window.addEventListener('google-sync', onChange);
+    return () => {
+      window.removeEventListener('google-connected', onChange);
+      window.removeEventListener('google-sync', onChange);
+    };
+  }, []);
+  const G = window.Nebula?.google;
+  const connected = G?.isConnected() || false;
+  const lastSync = window.Nebula?.storage?.get('google_last_sync', null);
+  const lastSyncStr = lastSync
+    ? `il y a ${Math.max(1, Math.round((Date.now() - lastSync) / 60000))} min`
+    : "jamais";
+
+  const onConnect = () => G?.startOAuth();
+  const onDisconnect = () => {
+    if (!confirm("Déconnecter Google Calendar ?")) return;
+    G?.disconnect();
+    setTick(t => t + 1);
+  };
+  const onSync = () => {
+    window.Nebula?.storage?.set('google_last_sync', Date.now());
+    window.dispatchEvent(new CustomEvent('google-sync'));
+  };
+
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 0" }}>
+      <div style={{ width: 32, height: 32, borderRadius: 8, background: "var(--surface-2)", border: "1px solid var(--border)", display: "grid", placeItems: "center", fontSize: 16 }}>📅</div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 13, fontWeight: 500 }}>Google Calendar</div>
+        <div style={{ fontSize: 11, color: connected ? "var(--green)" : "var(--text-3)", marginTop: 2 }}>
+          {connected ? `● Connecté · sync ${lastSyncStr}` : "Non connecté"}
+        </div>
+      </div>
+      {connected && (
+        <button onClick={onSync} style={{ padding: "5px 11px", borderRadius: 7, fontSize: 11.5, fontWeight: 600, fontFamily: "inherit", cursor: "pointer", background: "var(--surface-2)", color: "var(--text-2)", border: "1px solid var(--border-strong)" }}>
+          Synchroniser
+        </button>
+      )}
+      <button onClick={connected ? onDisconnect : onConnect} style={{ padding: "5px 11px", borderRadius: 7, fontSize: 11.5, fontWeight: 600, fontFamily: "inherit", cursor: "pointer",
+        background: connected ? "transparent" : "var(--accent)",
+        color: connected ? "var(--text-3)" : "white",
+        border: connected ? "1px solid var(--border-strong)" : 0 }}>
+        {connected ? "Déconnecter" : "Connecter"}
+      </button>
+    </div>
+  );
+};
+
 /* === Settings === */
+
+/* Helper : useState persisté via storage.js */
+function usePersistedState(key, defaults) {
+  const [value, setValue] = React.useState(() => {
+    const saved = window.Nebula?.storage?.get(key, null);
+    return saved ? { ...defaults, ...saved } : defaults;
+  });
+  const update = React.useCallback((updater) => {
+    setValue(prev => {
+      const next = typeof updater === 'function' ? updater(prev) : updater;
+      window.Nebula?.storage?.set(key, next);
+      return next;
+    });
+  }, [key]);
+  return [value, update];
+}
+
 const SettingsView = ({ tw, setTweak }) => {
-  const [profile, setProfile] = React.useState({ name: "Noé Lambert", email: "noe@nebula.app", tz: "Europe/Paris" });
-  const [notifs, setNotifs] = React.useState({ daily: true, weekly: true, alerts: true, marketing: false });
-  const [accounts, setAccounts] = React.useState([
-    { name: "Apple Health", icon: "❤️", connected: true, last: "il y a 2 min" },
-    { name: "Google Calendar", icon: "📅", connected: true, last: "il y a 10 min" },
-    { name: "Bank Connect", icon: "🏦", connected: true, last: "il y a 1 h" },
-  ]);
-  const [privacy, setPrivacy] = React.useState({ share: true, icloud: true, autoUpdate: true });
-  const toggleAcc = (i) => setAccounts(a => a.map((x, j) => j === i ? { ...x, connected: !x.connected, last: !x.connected ? "à l'instant" : null } : x));
+  const [profile, setProfile] = usePersistedState('profile', { name: "Noé Lambert", email: "noe@nebula.app", tz: "Europe/Paris" });
+  const [notifs,  setNotifs]  = usePersistedState('notifs',  { daily: true, weekly: true, alerts: true, marketing: false });
+  const [privacy, setPrivacy] = usePersistedState('privacy', { share: true, icloud: true, autoUpdate: true });
 
   const SCard = ({ title, desc, children }) => (
     <div className="card" style={{ padding: 18 }}>
@@ -1089,23 +1154,9 @@ const SettingsView = ({ tw, setTweak }) => {
 
       <SCard title="Comptes connectés" desc="Sources de données externes">
         <WithingsAccount />
-        {accounts.map((a, i) => (
-          <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 0", borderTop: "1px solid var(--border)" }}>
-            <div style={{ width: 32, height: 32, borderRadius: 8, background: "var(--surface-2)", border: "1px solid var(--border)", display: "grid", placeItems: "center", fontSize: 16 }}>{a.icon}</div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 13, fontWeight: 500 }}>{a.name}</div>
-              <div style={{ fontSize: 11, color: a.connected ? "var(--green)" : "var(--text-3)", marginTop: 2 }}>
-                {a.connected ? `● Connecté · sync ${a.last}` : "Non connecté (mock)"}
-              </div>
-            </div>
-            <button onClick={() => toggleAcc(i)} style={{ padding: "5px 11px", borderRadius: 7, fontSize: 11.5, fontWeight: 600, fontFamily: "inherit", cursor: "pointer",
-              background: a.connected ? "transparent" : "var(--accent)",
-              color: a.connected ? "var(--text-3)" : "white",
-              border: a.connected ? "1px solid var(--border-strong)" : 0 }}>
-              {a.connected ? "Déconnecter" : "Connecter"}
-            </button>
-          </div>
-        ))}
+        <div style={{ borderTop: "1px solid var(--border)" }}>
+          <GoogleAccount />
+        </div>
       </SCard>
 
       <SCard title="Confidentialité" desc="Tes données t'appartiennent">

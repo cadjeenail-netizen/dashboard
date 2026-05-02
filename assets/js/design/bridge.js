@@ -4,27 +4,34 @@
    ════════════════════════════════════════════════════════ */
 
 import * as withings from '../withings.js';
+import * as google   from '../google.js';
 import * as storage  from '../storage.js';
 import * as auth     from '../auth.js';
 import * as sync     from '../sync.js';
 
-window.Nebula = { withings, storage, auth, sync };
+window.Nebula = { withings, google, storage, auth, sync };
 
 /* Flag + event pour que React puisse attendre si besoin */
 window.NebulaReady = true;
 window.dispatchEvent(new Event('nebula-ready'));
 
-/* ── Gère le callback OAuth Withings dès le chargement ──
-   Si l'URL contient ?code=… , on échange le code contre un token
-   AVANT que React monte (sinon React nettoierait l'URL trop tôt). */
+/* ── Gère les callbacks OAuth dès le chargement ──
+   On essaie Google D'ABORD (vérifie son state en sessionStorage) puis Withings.
+   Chaque module ignore le callback si ce n'est pas le sien. */
 (async () => {
   try {
-    const handled = await withings.handleCallback();
-    if (handled) {
-      console.log('[Nebula] Withings OAuth callback traité avec succès');
+    const g = await google.handleCallback();
+    if (g) {
+      console.log('[Nebula] Google OAuth callback OK');
+      window.dispatchEvent(new Event('google-connected'));
+      return;
+    }
+  } catch (e) { console.error('[Nebula] Google callback erreur:', e); }
+  try {
+    const w = await withings.handleCallback();
+    if (w) {
+      console.log('[Nebula] Withings OAuth callback OK');
       window.dispatchEvent(new Event('withings-connected'));
     }
-  } catch (e) {
-    console.error('[Nebula] OAuth callback erreur:', e);
-  }
+  } catch (e) { console.error('[Nebula] Withings callback erreur:', e); }
 })();
