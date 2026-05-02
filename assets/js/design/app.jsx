@@ -1279,10 +1279,41 @@ const InsightsView = () => {
   );
 };
 
+/* === Intro animation cosmique : planète qui tourne → explose → données === */
+const IntroAnimation = ({ onDone }) => {
+  const [phase, setPhase] = React.useState("rotating");
+  React.useEffect(() => {
+    const t1 = setTimeout(() => setPhase("exploding"), 1800);
+    const t2 = setTimeout(() => { setPhase("done"); onDone?.(); }, 3300);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, []);
+  if (phase === "done") return null;
+  return (
+    <div className={`intro-overlay intro-${phase}`}>
+      <div className="intro-stars" />
+      <div className="intro-glow" />
+      <div className="intro-planet">
+        <div className="intro-planet-surface" />
+        <div className="intro-planet-shadow" />
+        <div className="intro-planet-ring" />
+      </div>
+      {phase === "exploding" && (
+        <div className="intro-particles">
+          {Array.from({ length: 32 }).map((_, i) => (
+            <span key={i} style={{ "--angle": `${(360/32) * i}deg`, "--delay": `${(i % 8) * 18}ms`, "--dist": `${60 + (i % 5) * 10}vmax` }} />
+          ))}
+        </div>
+      )}
+      <div className="intro-title">Nebula</div>
+    </div>
+  );
+};
+
 /* === App === */
 const App = () => {
   const [tw, setTweak] = useTweaks(TWEAK_DEFAULTS);
   const [active, setActive] = React.useState("home");
+  const [introDone, setIntroDone] = React.useState(false);
 
   React.useEffect(() => {
     document.documentElement.dataset.theme = tw.theme;
@@ -1305,7 +1336,9 @@ const App = () => {
   const toggleTheme = () => setTweak("theme", tw.theme === "dark" ? "light" : "dark");
 
   return (
-    <div className="app" data-view={active}>
+    <>
+      {!introDone && <IntroAnimation onDone={() => setIntroDone(true)} />}
+    <div className={`app ${introDone ? "app-revealed" : "app-hidden"}`} data-view={active}>
       <Sidebar active={active} setActive={setActive} theme={tw.theme} toggleTheme={toggleTheme} />
       <main className="main">
         <Topbar tw={tw} active={active} setActive={setActive} />
@@ -1344,6 +1377,7 @@ const App = () => {
         </div>
       </main>
     </div>
+    </>
   );
 };
 
