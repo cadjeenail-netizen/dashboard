@@ -1128,6 +1128,75 @@ const GoogleAccount = () => {
   );
 };
 
+const CloudAccount = () => {
+  const [tick, setTick] = React.useState(0);
+  const [busy, setBusy] = React.useState("");
+
+  React.useEffect(() => {
+    const onChange = () => setTick(t => t + 1);
+    window.addEventListener('cloud-sync-ready', onChange);
+    return () => window.removeEventListener('cloud-sync-ready', onChange);
+  }, []);
+
+  const A = window.Nebula?.auth;
+  const S = window.Nebula?.sync;
+  const connected = A?.isAuthenticated?.() || false;
+  const email = A?.getUserEmail?.() || "Compte connecte";
+
+  const run = async (label, action, reload = false) => {
+    if (!action || busy) return;
+    setBusy(label);
+    try {
+      await action();
+      setTick(t => t + 1);
+      if (reload) setTimeout(() => location.reload(), 500);
+    } catch (err) {
+      alert(err?.message || "Erreur de synchronisation");
+    } finally {
+      setBusy("");
+    }
+  };
+
+  const onConnect = () => run("connexion", async () => {
+    await A?.initAuth?.();
+    await S?.initSync?.();
+  });
+  const onPush = () => run("sauvegarde", () => S?.pushToCloud?.());
+  const onPull = () => run("restauration", () => S?.pullFromCloud?.(), true);
+  const onDisconnect = () => {
+    if (!confirm("Deconnecter le cloud Supabase ?")) return;
+    A?.signOut?.();
+  };
+
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 0" }}>
+      <div style={{ width: 32, height: 32, borderRadius: 8, background: "var(--green-soft)", border: "1px solid var(--border)", display: "grid", placeItems: "center", fontSize: 16 }}>☁</div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 13, fontWeight: 500 }}>Cloud Supabase</div>
+        <div style={{ fontSize: 11, color: connected ? "var(--green)" : "var(--text-3)", marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+          {connected ? `● Connecte · ${email}` : "Non connecte"}
+        </div>
+      </div>
+      {connected && (
+        <>
+          <button onClick={onPush} disabled={!!busy} style={{ padding: "5px 11px", borderRadius: 7, fontSize: 11.5, fontWeight: 600, fontFamily: "inherit", cursor: "pointer", background: "var(--surface-2)", color: "var(--text-2)", border: "1px solid var(--border-strong)" }}>
+            {busy === "sauvegarde" ? "..." : "Sauver"}
+          </button>
+          <button onClick={onPull} disabled={!!busy} style={{ padding: "5px 11px", borderRadius: 7, fontSize: 11.5, fontWeight: 600, fontFamily: "inherit", cursor: "pointer", background: "var(--surface-2)", color: "var(--text-2)", border: "1px solid var(--border-strong)" }}>
+            {busy === "restauration" ? "..." : "Restaurer"}
+          </button>
+        </>
+      )}
+      <button onClick={connected ? onDisconnect : onConnect} disabled={!!busy} style={{ padding: "5px 11px", borderRadius: 7, fontSize: 11.5, fontWeight: 600, fontFamily: "inherit", cursor: "pointer",
+        background: connected ? "transparent" : "var(--accent)",
+        color: connected ? "var(--text-3)" : "white",
+        border: connected ? "1px solid var(--border-strong)" : 0 }}>
+        {connected ? "Deconnecter" : (busy === "connexion" ? "..." : "Connecter")}
+      </button>
+    </div>
+  );
+};
+
 /* === Helpers Settings — DÉFINIS HORS du composant pour éviter le remontage des inputs à chaque keystroke === */
 const SCard = ({ title, desc, children }) => (
   <div className="card" style={{ padding: 18 }}>
@@ -1253,6 +1322,8 @@ const SettingsView = ({ tw, setTweak }) => {
       </SCard>
 
       <SCard title="Comptes connectés" desc="Sources de données externes">
+        <CloudAccount />
+        <div style={{ borderTop: "1px solid var(--border)" }} />
         <WithingsAccount />
         <div style={{ borderTop: "1px solid var(--border)" }}>
           <GoogleAccount />

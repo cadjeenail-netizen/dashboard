@@ -15,6 +15,24 @@ window.Nebula = { withings, google, storage, auth, sync };
 window.NebulaReady = true;
 window.dispatchEvent(new Event('nebula-ready'));
 
+async function initCloudSync() {
+  try {
+    if (!auth.isAuthenticated?.()) {
+      await auth.refreshSession?.();
+    }
+
+    if (auth.isAuthenticated?.()) {
+      await sync.initSync();
+      window.dispatchEvent(new Event('cloud-sync-ready'));
+      console.log('[Nebula] Cloud sync OK');
+    } else {
+      console.info('[Nebula] Cloud sync en attente: utilisateur non connecte');
+    }
+  } catch (e) {
+    console.warn('[Nebula] Cloud sync erreur:', e);
+  }
+}
+
 /* ── Gère les callbacks OAuth dès le chargement ──
    On essaie Google D'ABORD (vérifie son state en sessionStorage) puis Withings.
    Chaque module ignore le callback si ce n'est pas le sien. */
@@ -34,4 +52,6 @@ window.dispatchEvent(new Event('nebula-ready'));
       window.dispatchEvent(new Event('withings-connected'));
     }
   } catch (e) { console.error('[Nebula] Withings callback erreur:', e); }
+
+  await initCloudSync();
 })();
