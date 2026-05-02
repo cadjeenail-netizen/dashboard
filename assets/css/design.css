@@ -968,7 +968,10 @@ body {
   grid-auto-rows: min-content;
 }
 
-/* ─── Responsive : sidebar en mobile ─── */
+/* ═══════════════════════════════════════════════════════════
+   RESPONSIVE — TABLETTE (≤ 900px)
+   Sidebar en barre horizontale en haut
+═══════════════════════════════════════════════════════════ */
 @media (max-width: 900px) {
   .app {
     grid-template-columns: 1fr;
@@ -997,4 +1000,198 @@ body {
     grid-column: 1 / -1 !important;
     grid-row: auto !important;
   }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   RESPONSIVE — IPHONE (≤ 600px)
+   Bottom tab bar iOS-style + layout 1 colonne ultra-compact
+═══════════════════════════════════════════════════════════ */
+@media (max-width: 600px) {
+  body { font-size: 14px; }
+
+  .app {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+
+  /* ── Sidebar → bottom tab bar fixe ── */
+  .sidebar {
+    order: 99;
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: auto;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+    padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
+    border-right: 0;
+    border-top: 1px solid var(--border-strong);
+    background: rgba(255,255,255,0.92);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: 0 -4px 20px rgba(20,18,56,0.06);
+    z-index: 100;
+    overflow: visible;
+  }
+  [data-theme="dark"] .sidebar {
+    background: rgba(11,10,20,0.92);
+  }
+  .sidebar .brand,
+  .sidebar .nav-section,
+  .sidebar-foot {
+    display: none;
+  }
+  .nav-item {
+    flex: 1;
+    flex-direction: column;
+    gap: 2px;
+    padding: 6px 4px;
+    font-size: 9.5px;
+    font-weight: 500;
+    text-align: center;
+    border-radius: 9px;
+    min-width: 0;
+  }
+  .nav-item .badge { display: none; }
+  .nav-item .icon { width: 22px; height: 22px; }
+  .nav-item span:not(.icon):not(.badge) {
+    font-size: 9.5px;
+    line-height: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+  }
+  .nav-item.active {
+    background: var(--accent-soft);
+  }
+  .nav-item.active::before { display: none; }
+
+  /* ── Main : place pour le bottom tab bar ── */
+  .main {
+    padding-bottom: 80px;
+  }
+
+  /* ── Topbar compact ── */
+  .topbar {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 12px 14px 10px;
+  }
+  .greet { width: 100%; order: 1; }
+  .greet h1 { font-size: 18px; }
+  .greet p { font-size: 11px; }
+  .top-spacer { display: none; }
+  .search { display: none !important; }
+  .clock {
+    font-size: 11px;
+    padding: 6px 10px;
+    margin-left: auto;
+    order: 2;
+  }
+  .icon-btn {
+    width: 32px; height: 32px;
+    order: 3;
+  }
+
+  /* ── Grid : 1 colonne, padding réduit ── */
+  .grid {
+    grid-template-columns: 1fr !important;
+    grid-template-rows: auto !important;
+    gap: 10px;
+    padding: 0 12px 14px;
+  }
+  .grid > .card {
+    grid-column: 1 !important;
+    grid-row: auto !important;
+  }
+
+  /* ── Cards : padding réduit ── */
+  .card { padding: 14px 14px; }
+
+  /* ── Welcome : score sous le texte ── */
+  .welcome-content { flex-direction: column; align-items: flex-start; gap: 12px; }
+  .welcome h2 { font-size: 15px; }
+  .score-circle { width: 60px; height: 60px; }
+  .score-val b { font-size: 18px; }
+
+  /* ── Weather ── */
+  .weather-temp { font-size: 30px; }
+  .weather-stats { grid-template-columns: repeat(4, 1fr); gap: 4px; }
+  .weather-stat { padding: 4px 3px; }
+  .weather-stat .l { font-size: 8px; }
+  .weather-stat .v { font-size: 10.5px; }
+
+  /* ── Health : metrics 2 colonnes ── */
+  .metrics-row {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 6px;
+  }
+  .metric { padding: 8px 9px; }
+  .metric .v { font-size: 16px; }
+  .metric .l { font-size: 9px; }
+  .metric .delta { font-size: 9.5px; }
+
+  /* Charts row : empilé en mobile */
+  .charts-row {
+    grid-template-columns: 1fr !important;
+    gap: 8px;
+  }
+  .chart-card { padding: 10px; }
+  .chart-canvas { min-height: 140px; }
+
+  /* ── Productivity ── */
+  .prod-tab { font-size: 11px; padding: 5px 4px; gap: 3px; }
+  .habit-row { padding: 8px 0; gap: 8px; }
+  .habit-name { font-size: 12px; }
+  .habit-day { width: 20px; height: 20px; font-size: 9px; }
+  .habit-days { gap: 2px; }
+  .obj-name { font-size: 12px; }
+
+  /* ── Finance ── */
+  .fin-head { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .fin-balance .v { font-size: 22px; }
+  .fin-mini { width: 100%; justify-content: space-between; }
+  .fin-foot { font-size: 10px; flex-wrap: wrap; gap: 4px; }
+
+  /* ── Agenda ── */
+  .agenda-day { padding: 8px 9px; }
+  .agenda-day .ev-name { font-size: 11.5px; }
+  .agenda-day .ev-meta { font-size: 10px; }
+  .agenda-day .time { font-size: 10px; min-width: 38px; }
+
+  /* ── Quote ── */
+  .quote-text { font-size: 13px; }
+
+  /* ── Settings : 1 colonne ── */
+  .settings-view {
+    grid-template-columns: 1fr !important;
+  }
+  .insights-view {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Heatmap insights : moins de colonnes */
+  .insights-view div[style*="grid-template-columns: repeat(14"] {
+    grid-template-columns: repeat(7, 1fr) !important;
+  }
+
+  /* ── Modal recherche ── */
+  div[style*="paddingTop: \"12vh\""] > div {
+    width: 95vw !important;
+    max-width: 95vw !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   IPHONE TRÈS PETIT (≤ 380px) — SE, mini
+═══════════════════════════════════════════════════════════ */
+@media (max-width: 380px) {
+  .nav-item span:not(.icon):not(.badge) { font-size: 8.5px; }
+  .nav-item .icon { width: 20px; height: 20px; }
+  .greet h1 { font-size: 17px; }
+  .metric .v { font-size: 14.5px; }
+  .weather-stats { grid-template-columns: repeat(2, 1fr); }
+  .clock { display: none; }
 }
