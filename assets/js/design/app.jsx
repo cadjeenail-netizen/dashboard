@@ -122,17 +122,58 @@ const Sidebar = ({ active, setActive, theme, toggleTheme }) => {
           </div>
         )
       )}
-      <div className="sidebar-foot">
-        <div className="avatar">N</div>
-        <div style={{ minWidth: 0, flex: 1 }}>
-          <div className="user-name">Na'îl Cadjee</div>
-          <div className="user-mail">noe@nebula.app</div>
-        </div>
-        <button className="theme-toggle" onClick={toggleTheme} title="Mode sombre">
-          <Icon name={theme === "dark" ? "sun" : "moon"} size={15} />
-        </button>
-      </div>
+      <SidebarFoot theme={theme} toggleTheme={toggleTheme} />
     </aside>
+  );
+};
+
+/* Affiche le vrai utilisateur Supabase connecté (ou "Invité" sinon) */
+const SidebarFoot = ({ theme, toggleTheme }) => {
+  const [user, setUser] = React.useState(() => {
+    try {
+      const session = window.Nebula?.auth?.getSession?.();
+      return session?.user || null;
+    } catch { return null; }
+  });
+
+  React.useEffect(() => {
+    /* Re-évalue si l'auth change (login/logout) */
+    const onChange = () => {
+      try {
+        const session = window.Nebula?.auth?.getSession?.();
+        setUser(session?.user || null);
+      } catch { setUser(null); }
+    };
+    window.addEventListener('storage', onChange);
+    window.addEventListener('auth-changed', onChange);
+    return () => {
+      window.removeEventListener('storage', onChange);
+      window.removeEventListener('auth-changed', onChange);
+    };
+  }, []);
+
+  /* Récupère le nom depuis le profil sauvegardé OU email OU "Invité" */
+  const profile = (() => {
+    try { return window.Nebula?.storage?.get?.('profile', null); } catch { return null; }
+  })();
+
+  const email = user?.email || null;
+  const displayName = profile?.name || (email ? email.split('@')[0] : 'Invité');
+  const initial = (displayName || 'U').trim().charAt(0).toUpperCase();
+
+  return (
+    <div className="sidebar-foot">
+      <div className="avatar">{initial}</div>
+      <div style={{ minWidth: 0, flex: 1 }}>
+        <div className="user-name" title={displayName}>{displayName}</div>
+        <div className="user-mail" title={email || 'Non connecté'}>
+          {email || 'Non connecté'}
+        </div>
+      </div>
+      <button className="theme-toggle" onClick={toggleTheme} title="Mode sombre">
+        <Icon name={theme === "dark" ? "sun" : "moon"} size={15} />
+      </button>
+    </div>
   );
 };
 

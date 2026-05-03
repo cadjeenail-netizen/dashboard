@@ -4,6 +4,7 @@
    ════════════════════════════════════════════════════════ */
 
 import { get, set, remove } from './storage.js';
+import { getUserId } from './auth.js';
 
 /* ── Public — pas un secret ── */
 /* À renseigner : ton CLIENT_ID Google OAuth (créé sur Google Cloud Console) */
@@ -15,21 +16,42 @@ const SCOPES       = 'https://www.googleapis.com/auth/calendar.readonly';
 const AUTH_URL  = 'https://accounts.google.com/o/oauth2/v2/auth';
 const CAL_API   = 'https://www.googleapis.com/calendar/v3';
 
+/* ── Multi-user : tokens namespacés par userId Supabase ── */
+function userKey(suffix) {
+  const uid = getUserId() || 'default';
+  return `g_${uid}_${suffix}`;
+}
+/* Migration tokens globaux → user courant */
+(() => {
+  const legacy = get('g_access', null);
+  if (legacy) {
+    const uid = getUserId() || 'default';
+    if (!get(`g_${uid}_access`, null)) {
+      set(`g_${uid}_access`, legacy);
+      const r = get('g_refresh', null); if (r) set(`g_${uid}_refresh`, r);
+      const e = get('g_exp', null);     if (e) set(`g_${uid}_exp`, e);
+    }
+    remove('g_access'); remove('g_refresh'); remove('g_exp');
+  }
+})();
+
 /* ── Tokens ── */
-export function getAccessToken()  { return get('g_access', null); }
-export function getRefreshToken() { return get('g_refresh', null); }
-function getExpiresAt() { return get('g_exp', 0); }
+export function getAccessToken()  { return get(userKey('access'), null); }
+export function getRefreshToken() { return get(userKey('refresh'), null); }
+function getExpiresAt() { return get(userKey('exp'), 0); }
 export function isConnected() { return !!getAccessToken(); }
 
 function saveTokens({ access_token, refresh_token, expires_in }) {
-  set('g_access', access_token);
+  set(userKey('access'), access_token);
   /* Google ne renvoie le refresh_token qu'au PREMIER échange (sauf prompt=consent) */
-  if (refresh_token) set('g_refresh', refresh_token);
-  set('g_exp', Date.now() + (expires_in || 3600) * 1000);
+  if (refresh_token) set(userKey('refresh'), refresh_token);
+  set(userKey('exp'), Date.now() + (expires_in || 3600) * 1000);
 }
 
 export function disconnect() {
-  remove('g_access'); remove('g_refresh'); remove('g_exp');
+  remove(userKey('access'));
+  remove(userKey('refresh'));
+  remove(userKey('exp'));
 }
 
 function isTokenExpired() {

@@ -174,6 +174,60 @@
       8% { opacity: 1; transform: scale(1); }
       100% { opacity: 0; transform: scale(2.5); }
     }
+
+    /* ─── Responsive iPhone / Mobile ─── */
+    @media (max-width: 768px) {
+      .hud { bottom: clamp(80px, 14vh, 140px); width: 90%; }
+      .hud h1 {
+        font-size: clamp(34px, 14vw, 64px);
+        text-shadow: 0 0 20px rgba(94, 159, 255, .3);
+      }
+      .hud p {
+        font-size: 9.5px;
+        letter-spacing: .26em;
+        margin-top: 10px;
+      }
+      .open-site {
+        right: 14px;
+        top: calc(14px + env(safe-area-inset-top));
+        padding: 8px 14px;
+        font-size: 12px;
+      }
+      .progress { height: 2px; }
+      /* Réduit la taille du canvas WebGL pour gagner en perf sur mobile */
+      #webgl { width: 100%; height: 100%; }
+    }
+
+    @media (max-width: 420px) {
+      .hud h1 {
+        font-size: clamp(28px, 12vw, 48px);
+        letter-spacing: -.04em;
+      }
+      .hud p {
+        font-size: 8.5px;
+        letter-spacing: .2em;
+        margin-top: 8px;
+      }
+      .open-site {
+        padding: 7px 11px;
+        font-size: 11px;
+        font-weight: 600;
+      }
+    }
+
+    /* Notch/Dynamic Island */
+    @supports (padding: max(0px)) {
+      .open-site {
+        top: max(14px, calc(14px + env(safe-area-inset-top)));
+        right: max(14px, calc(14px + env(safe-area-inset-right)));
+      }
+    }
+
+    /* Désactive l'intro si reduce-motion est demandé */
+    @media (prefers-reduced-motion: reduce) {
+      .stars, .stars::before, .stars::after { animation: none !important; }
+      #webgl { display: none; }
+    }
   </style>
 </head>
 <body>
@@ -209,12 +263,20 @@
     const subtitle = document.getElementById("subtitle");
     const flash = document.getElementById("flash");
 
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(44, innerWidth / innerHeight, 0.1, 300);
-    camera.position.set(0, 0, 5.4);
+    /* Détection mobile pour ajuster la perf */
+    const IS_MOBILE = /iPhone|iPod|Android.*Mobile|webOS|BlackBerry|IEMobile/i.test(navigator.userAgent)
+                      || (innerWidth <= 768 && matchMedia('(pointer: coarse)').matches);
+    /* Caméra plus reculée sur mobile pour bien voir la planète + anti-débordement */
+    const CAM_Z = IS_MOBILE ? 6.6 : 5.4;
+    const FOV   = IS_MOBILE ? 52 : 44;
 
-    const renderer = new THREE.WebGLRenderer({ canvas: webgl, antialias: true, alpha: true });
-    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(FOV, innerWidth / innerHeight, 0.1, 300);
+    camera.position.set(0, 0, CAM_Z);
+
+    const renderer = new THREE.WebGLRenderer({ canvas: webgl, antialias: !IS_MOBILE, alpha: true });
+    /* Pixel ratio plafonné à 1.5 sur mobile (perf) */
+    renderer.setPixelRatio(Math.min(devicePixelRatio, IS_MOBILE ? 1.5 : 2));
     renderer.setSize(innerWidth, innerHeight);
     renderer.outputColorSpace = THREE.SRGBColorSpace;
 

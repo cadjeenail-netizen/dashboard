@@ -2,9 +2,13 @@
    WITHINGS.JS — OAuth via API serverless Vercel
    ✅ AUCUN secret en clair dans ce fichier
    Le CLIENT_SECRET vit dans les variables d'env Vercel
+
+   ✅ MULTI-USER : les tokens sont namespacés par userId Supabase
+   → chaque utilisateur a ses propres tokens Withings sur le même navigateur
    ════════════════════════════════════════════════════════ */
 
 import { get, set, remove } from './storage.js';
+import { getUserId } from './auth.js';
 
 /* ── Public — pas un secret ── */
 const CLIENT_ID    = '56e3a4dbeadf02b036a408d587e6db1961f2ab6b9790bfe79009fb826be8b861';
@@ -12,20 +16,48 @@ const REDIRECT_URI = window.location.origin + window.location.pathname;
 const API_PROXY    = '/api/withings';     // notre fonction serverless
 const WITHINGS_API = 'https://wbsapi.withings.net';
 
+/* ── Helpers : clés namespacées par userId Supabase ── */
+function userKey(suffix) {
+  const uid = getUserId() || 'default';
+  return `w_${uid}_${suffix}`;
+}
+
+/* Migration douce : si on trouve un ancien token global (w_access sans userId),
+   on le déplace vers la clé namespacée du user courant — une seule fois */
+function migrateLegacyTokens() {
+  const legacyAccess  = get('w_access', null);
+  const legacyRefresh = get('w_refresh', null);
+  const legacyExp     = get('w_exp', null);
+  if (legacyAccess) {
+    const uid = getUserId() || 'default';
+    if (!get(`w_${uid}_access`, null)) {
+      set(`w_${uid}_access`,  legacyAccess);
+      if (legacyRefresh) set(`w_${uid}_refresh`, legacyRefresh);
+      if (legacyExp)     set(`w_${uid}_exp`,     legacyExp);
+      console.log('[withings] Migration tokens legacy → user', uid);
+    }
+    /* Nettoie les anciennes clés globales */
+    remove('w_access'); remove('w_refresh'); remove('w_exp');
+  }
+}
+try { migrateLegacyTokens(); } catch (e) { console.warn('[withings] migration skip', e); }
+
 /* ── Tokens ── */
-export function getAccessToken()  { return get('w_access', null); }
-export function getRefreshToken() { return get('w_refresh', null); }
-function getExpiresAt() { return get('w_exp', 0); }
+export function getAccessToken()  { return get(userKey('access'), null); }
+export function getRefreshToken() { return get(userKey('refresh'), null); }
+function getExpiresAt() { return get(userKey('exp'), 0); }
 export function isConnected() { return !!getAccessToken(); }
 
 function saveTokens({ access_token, refresh_token, expires_in }) {
-  set('w_access',  access_token);
-  set('w_refresh', refresh_token);
-  set('w_exp',     Date.now() + expires_in * 1000);
+  set(userKey('access'),  access_token);
+  set(userKey('refresh'), refresh_token);
+  set(userKey('exp'),     Date.now() + expires_in * 1000);
 }
 
 export function disconnect() {
-  remove('w_access'); remove('w_refresh'); remove('w_exp');
+  remove(userKey('access'));
+  remove(userKey('refresh'));
+  remove(userKey('exp'));
 }
 
 function isTokenExpired() {
