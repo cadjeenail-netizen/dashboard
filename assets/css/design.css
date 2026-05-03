@@ -290,20 +290,31 @@ body {
   flex-shrink: 0;
 }
 
+.greet {
+  min-width: 0;
+  flex-shrink: 1;
+  overflow: hidden;
+}
 .greet h1 {
   font-family: 'Inter Tight', sans-serif;
   font-size: 22px;
   font-weight: 600;
   letter-spacing: -0.02em;
   line-height: 1.15;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .greet p {
   font-size: 12.5px;
   color: var(--text-3);
   margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.top-spacer { flex: 1; }
+.top-spacer { flex: 1; min-width: 8px; }
 
 .search {
   display: flex;
@@ -313,7 +324,7 @@ body {
   background: var(--surface);
   border: 1px solid var(--border-strong);
   border-radius: 10px;
-  width: 240px;
+  width: clamp(140px, 18vw, 240px);
   font-size: 12.5px;
   color: var(--text-3);
   box-shadow: var(--shadow-sm);
@@ -2330,7 +2341,7 @@ body {
 .health-board .metrics-row {
   grid-column: 1 / -1;
   display: grid;
-  grid-template-columns: repeat(5, minmax(120px, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 12px;
   margin: 0;
   min-width: 0;
@@ -2364,7 +2375,7 @@ body {
 .health-board .charts-row {
   grid-column: 1 / -1;
   display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(260px, 0.85fr);
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.85fr);
   gap: 14px;
   width: 100%;
   min-width: 0;
@@ -2517,6 +2528,73 @@ body {
   .health-board .chart-card > div:first-child .tab {
     flex: 1;
   }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   RESPONSIVE DESKTOP — Fenêtre non maximisée (1050-1350px)
+   Compacte la topbar et le grid sans casser le layout 12 col
+═══════════════════════════════════════════════════════════ */
+@media (max-width: 1350px) {
+  .topbar { gap: 12px; padding: 16px 22px 12px; }
+  .grid   { padding: 0 20px 18px; gap: 12px; }
+  .greet h1 { font-size: 20px; }
+}
+
+@media (max-width: 1150px) {
+  .topbar { gap: 10px; padding: 14px 18px 10px; }
+  .grid   { padding: 0 16px 14px; gap: 11px; }
+  .greet h1 { font-size: 18px; }
+  .greet p  { font-size: 11.5px; }
+  .clock  { font-size: 12px; padding: 6px 10px; }
+  .card   { padding: 14px 15px; }
+  /* Health metrics : valeur plus petite pour tenir dans les colonnes */
+  .health-board .metric .v { font-size: 22px; }
+}
+
+@media (max-width: 1050px) {
+  .greet h1 { font-size: 16px; }
+  .greet p  { display: none; }
+  .clock    { display: none; }
+  /* Sidebar légèrement plus fine */
+  .app { grid-template-columns: 195px 1fr; }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   RESPONSIVE MOBILE — iPhone, améliorations ciblées
+   (complète les règles m-app existantes)
+═══════════════════════════════════════════════════════════ */
+
+/* Overflow global sur tous les textes de métriques */
+.m-app .metric .v,
+.m-app .metric .l,
+.m-app .ch-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* iPhone SE / petits écrans (≤ 390px) */
+@media (max-width: 390px) {
+  .m-feed { padding: 10px 10px calc(36px + env(safe-area-inset-bottom)); gap: 14px; }
+  .m-app .card { padding: 13px; border-radius: 14px; }
+  .m-app .weather-temp { font-size: 32px; }
+  .m-app .welcome h2  { font-size: 14.5px; }
+  .m-app .fin-balance .v { font-size: 22px; }
+  .m-app .metric .v { font-size: 15px; }
+  .m-app .chart-canvas { height: 160px !important; }
+  .m-app .prod-tab { font-size: 11px; padding: 7px 4px; }
+  .m-header { padding: 12px 14px calc(8px + env(safe-area-inset-top)); }
+  .m-header-greet { font-size: 17px; }
+}
+
+/* iPhone mini / très petits (≤ 360px) */
+@media (max-width: 360px) {
+  .m-feed { padding: 8px 8px calc(32px + env(safe-area-inset-bottom)); gap: 12px; }
+  .m-app .card { padding: 11px; }
+  .m-app .metric { padding: 8px 9px; }
+  .m-app .metrics-row { gap: 5px; }
+  .m-app .habit-day { width: 22px; height: 22px; font-size: 9px; min-width: 22px; }
+  .m-app .weather-stats { grid-template-columns: repeat(4, 1fr); gap: 3px; }
 }
 
 /* ═══════════════════════════════════════════════════════════
