@@ -2462,8 +2462,12 @@ body {
 }
 
 .app[data-view="home"] .health-board .charts-row {
-  grid-template-columns: minmax(0, 1.3fr) minmax(0, 0.9fr);
+  grid-template-columns: 1fr;
   gap: 10px;
+}
+/* Cache le graphique FC en vue Accueil — trop étroit, visible en vue Santé */
+.app[data-view="home"] .health-board .charts-row .chart-card:last-child {
+  display: none;
 }
 
 .app[data-view="home"] .health-board .chart-card {
