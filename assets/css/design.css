@@ -937,6 +937,12 @@ body {
 .app[data-view="agenda"] .weather   { grid-column: 9 / span 4; grid-row: 1 / span 2; }
 .app[data-view="agenda"] .agenda { display: flex; }
 
+/* En vue Accueil, on cache la 2e ligne de charts (poids + sommeil)
+   pour donner toute la hauteur au 1er (Pas + FC) */
+.app[data-view="home"] .health > .charts-row + .charts-row {
+  display: none;
+}
+
 .placeholder-view {
   grid-column: 1 / span 12;
   grid-row: 1 / span 3;
