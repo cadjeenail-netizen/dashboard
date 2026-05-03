@@ -969,6 +969,370 @@ body {
 }
 
 /* ═══════════════════════════════════════════════════════════
+   MOBILE APP — Feed vertical (data-device="mobile")
+   Layout dédié pour iPhone, complètement séparé du desktop
+═══════════════════════════════════════════════════════════ */
+html[data-device="mobile"] body {
+  background: var(--bg);
+  font-size: 14.5px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.m-app {
+  min-height: 100vh;
+  width: 100%;
+  background:
+    radial-gradient(ellipse 600px 400px at 50% 0%, var(--accent-soft), transparent 60%),
+    radial-gradient(ellipse 500px 300px at 50% 100%, var(--bg-grad-1), transparent 60%),
+    var(--bg);
+  display: flex;
+  flex-direction: column;
+}
+
+.m-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px calc(10px + env(safe-area-inset-top));
+  padding-top: calc(14px + env(safe-area-inset-top));
+  background: rgba(255,255,255,0.78);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  border-bottom: 1px solid var(--border);
+}
+[data-theme="dark"] .m-header {
+  background: rgba(11,10,20,0.78);
+}
+
+.m-header-greet {
+  font-family: 'Inter Tight', sans-serif;
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  color: var(--text);
+  line-height: 1.1;
+}
+.m-header-date {
+  font-size: 11.5px;
+  color: var(--text-3);
+  margin-top: 2px;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.m-theme-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--text-2);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: transform 0.15s, color 0.15s;
+}
+.m-theme-btn:active {
+  transform: scale(0.95);
+  color: var(--accent);
+}
+
+.m-feed {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 14px 14px calc(40px + env(safe-area-inset-bottom));
+  gap: 18px;
+}
+
+.m-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.m-section-h {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 4px;
+}
+.m-section-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+.m-section-title {
+  font-family: 'Inter Tight', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  line-height: 1.1;
+}
+.m-section-hint {
+  font-size: 11px;
+  color: var(--text-3);
+  margin-top: 1px;
+  font-weight: 500;
+}
+
+/* ── Cards inside mobile feed : full-width, padding réduit, no overflow hidden ── */
+.m-app .card {
+  padding: 16px;
+  border-radius: 18px;
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  overflow: visible;
+  box-shadow: 0 2px 8px rgba(20,18,56,0.04), 0 8px 24px rgba(20,18,56,0.05);
+}
+
+/* ── Welcome card : score à droite, texte à gauche ── */
+.m-app .welcome-content { gap: 14px; }
+.m-app .welcome h2 { font-size: 16px; }
+.m-app .welcome p { font-size: 12.5px; }
+.m-app .score-circle { width: 72px; height: 72px; }
+.m-app .score-val b { font-size: 20px; }
+
+/* ── Météo : compacte ── */
+.m-app .weather-temp { font-size: 38px; }
+.m-app .weather-stats { grid-template-columns: repeat(4, 1fr); gap: 5px; }
+.m-app .weather-stat { padding: 6px 4px; }
+.m-app .weather-stat .l { font-size: 8.5px; }
+.m-app .weather-stat .v { font-size: 12px; }
+
+/* ── Santé : metrics 2 colonnes, charts 1 colonne ── */
+.m-app .metrics-row {
+  display: grid !important;
+  grid-template-columns: repeat(2, 1fr) !important;
+  gap: 7px;
+}
+.m-app .metric { padding: 10px 11px; }
+.m-app .metric .v { font-size: 17px; }
+.m-app .metric .l { font-size: 9.5px; }
+.m-app .metric .delta { font-size: 9.5px; }
+
+.m-app .charts-row {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  grid-template-rows: auto !important;
+  gap: 8px;
+  flex: none !important;
+}
+.m-app .chart-card {
+  padding: 11px;
+  flex: none !important;
+}
+.m-app .chart-canvas {
+  flex: none !important;
+  height: 180px !important;
+  min-height: 0 !important;
+  width: 100%;
+}
+.m-app .ch-val { font-size: 15px; }
+
+/* ── Productivité : tabs cliquables, body scrollable interne ── */
+.m-app .prod-tabs {
+  display: flex;
+  gap: 3px;
+  margin-bottom: 12px;
+}
+.m-app .prod-tab {
+  flex: 1;
+  font-size: 12px;
+  padding: 8px 6px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.m-app .prod-body {
+  flex: none !important;
+  max-height: 420px;
+  overflow-y: auto;
+}
+.m-app .habit-row {
+  padding: 10px 0;
+  gap: 9px;
+}
+.m-app .habit-day {
+  width: 26px;
+  height: 26px;
+  font-size: 10px;
+  min-width: 26px;
+}
+.m-app .task-row {
+  padding: 11px 12px;
+  min-height: 44px;
+}
+.m-app .task-check {
+  width: 22px;
+  height: 22px;
+}
+
+/* ── Finances ── */
+.m-app .fin-head {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+.m-app .fin-balance .v { font-size: 26px; }
+.m-app .fin-mini { width: 100%; gap: 16px; }
+.m-app .fin-chart {
+  flex: none !important;
+  height: 200px !important;
+  min-height: 0 !important;
+}
+.m-app .fin-foot {
+  font-size: 10.5px;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* ── Agenda ── */
+.m-app .agenda-day {
+  padding: 10px 12px;
+  min-height: 56px;
+}
+.m-app .agenda-day .ev-name { font-size: 13px; }
+.m-app .agenda-day .ev-meta { font-size: 11px; }
+
+/* ── Citation ── */
+.m-app .quote-text { font-size: 14px; }
+
+/* ── Bouton Paramètres en bas du feed ── */
+.m-settings-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 14px;
+  margin-top: 6px;
+  border-radius: 14px;
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--text-2);
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  min-height: 50px;
+  transition: all 0.15s;
+}
+.m-settings-btn:active {
+  background: var(--surface-2);
+  transform: scale(0.99);
+}
+
+.m-feed-end {
+  text-align: center;
+  font-size: 10.5px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  padding: 14px 0 6px;
+  font-weight: 600;
+}
+
+/* ── Drawer Paramètres ── */
+.m-settings-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10,8,30,0.45);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 200;
+  animation: m-overlay-in 0.25s ease;
+}
+@keyframes m-overlay-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.m-settings-drawer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  max-height: 92vh;
+  background: var(--bg);
+  border-radius: 22px 22px 0 0;
+  display: flex;
+  flex-direction: column;
+  animation: m-drawer-in 0.3s cubic-bezier(0.2, 0.8, 0.3, 1);
+  overflow: hidden;
+  box-shadow: 0 -10px 40px rgba(0,0,0,0.2);
+}
+@keyframes m-drawer-in {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.m-settings-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.m-settings-head::before {
+  content: "";
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--text-3);
+  opacity: 0.4;
+}
+.m-settings-title {
+  font-family: 'Inter Tight', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.m-close-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--text-2);
+  font-size: 14px;
+  cursor: pointer;
+  font-family: inherit;
+  display: grid;
+  place-items: center;
+}
+.m-settings-body {
+  overflow-y: auto;
+  padding: 16px;
+  flex: 1;
+  -webkit-overflow-scrolling: touch;
+}
+.m-settings-body .settings-view {
+  grid-template-columns: 1fr !important;
+  gap: 12px;
+}
+
+/* ─── Cache la sidebar et l'intro sur mobile (au cas où) ─── */
+html[data-device="mobile"] .intro-overlay { display: none !important; }
+
+/* ═══════════════════════════════════════════════════════════
    INTRO ANIMATION — Planète cosmique → explosion
 ═══════════════════════════════════════════════════════════ */
 .intro-overlay {

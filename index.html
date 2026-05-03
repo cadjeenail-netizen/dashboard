@@ -13,18 +13,34 @@
   <link rel="icon" type="image/svg+xml" href="assets/img/nebula-logo.svg" />
 
   <script>
+    /* ── Détection device : mobile vs desktop ──
+       Critères combinés : User-Agent + viewport + pointer
+       Met data-device="mobile" ou "desktop" sur <html> AVANT que React monte. */
+    (() => {
+      const ua = navigator.userAgent || '';
+      const isPhoneUA = /iPhone|iPod|Android.*Mobile|webOS|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+      const isSmallViewport = window.matchMedia('(max-width: 768px)').matches;
+      const isCoarsePointer = window.matchMedia('(pointer: coarse)').matches;
+      const isMobile = isPhoneUA || (isSmallViewport && isCoarsePointer);
+      document.documentElement.dataset.device = isMobile ? 'mobile' : 'desktop';
+      window.__NEBULA_DEVICE__ = isMobile ? 'mobile' : 'desktop';
+    })();
+  </script>
+  <script>
     (() => {
       const params = new URLSearchParams(window.location.search);
       const isReturningFromIntro = params.get("intro") === "done";
       const isOAuthCallback = params.has("code") || params.has("state");
       const introSeen = sessionStorage.getItem("nebula_intro_seen") === "1";
+      const isMobileDevice = document.documentElement.dataset.device === 'mobile';
       let introEnabled = true;
       try {
         const tweaks = JSON.parse(localStorage.getItem("dashboard_vie_tweaks") || "{}");
         introEnabled = tweaks.showIntro !== false;
       } catch {}
 
-      if (introEnabled && !isReturningFromIntro && !isOAuthCallback && !introSeen) {
+      /* Skip intro sur mobile (perf + safety) */
+      if (introEnabled && !isReturningFromIntro && !isOAuthCallback && !introSeen && !isMobileDevice) {
         sessionStorage.setItem("nebula_intro_seen", "1");
         window.location.replace("agents-ia-intro.html");
       }

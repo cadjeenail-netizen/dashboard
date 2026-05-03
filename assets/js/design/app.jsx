@@ -1318,10 +1318,144 @@ const IntroAnimation = ({ onDone }) => {
   );
 };
 
+/* === useDevice : détecte mobile vs desktop (initialisé par index.html) ─── */
+const useDevice = () => {
+  const [device, setDevice] = React.useState(() => {
+    if (typeof window === 'undefined') return 'desktop';
+    return window.__NEBULA_DEVICE__ || (document.documentElement.dataset.device === 'mobile' ? 'mobile' : 'desktop');
+  });
+  React.useEffect(() => {
+    /* Ré-évalue sur resize (rotation, fenêtre redimensionnée) */
+    const recalc = () => {
+      const ua = navigator.userAgent || '';
+      const isPhoneUA = /iPhone|iPod|Android.*Mobile|webOS|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+      const isSmallViewport = window.matchMedia('(max-width: 768px)').matches;
+      const isCoarsePointer = window.matchMedia('(pointer: coarse)').matches;
+      const isMobile = isPhoneUA || (isSmallViewport && isCoarsePointer);
+      const next = isMobile ? 'mobile' : 'desktop';
+      document.documentElement.dataset.device = next;
+      window.__NEBULA_DEVICE__ = next;
+      setDevice(next);
+    };
+    window.addEventListener('resize', recalc);
+    return () => window.removeEventListener('resize', recalc);
+  }, []);
+  return device;
+};
+
+/* ════════════════════════════════════════════════════════
+   MOBILE APP — Feed vertical qui défile (pas de tabs)
+   Toutes les sections empilées, scroll continu
+═══════════════════════════════════════════════════════════ */
+const MobileHeader = ({ tw, toggleTheme }) => {
+  const now = useNow();
+  const days = ["Dim","Lun","Mar","Mer","Jeu","Ven","Sam"];
+  const months = ["jan","fév","mar","avr","mai","jui","jui","aoû","sep","oct","nov","déc"];
+  const greet = now.getHours() < 12 ? "Bonjour" : now.getHours() < 18 ? "Bon après-midi" : "Bonsoir";
+  return (
+    <header className="m-header">
+      <div>
+        <div className="m-header-greet">{greet}</div>
+        <div className="m-header-date">{days[now.getDay()]} {now.getDate()} {months[now.getMonth()]}</div>
+      </div>
+      <button className="m-theme-btn" onClick={toggleTheme} aria-label="Changer le thème">
+        <Icon name={tw.theme === "dark" ? "sun" : "moon"} size={18} />
+      </button>
+    </header>
+  );
+};
+
+const MobileSectionHeader = ({ icon, title, hint }) => (
+  <div className="m-section-h">
+    <div className="m-section-icon"><Icon name={icon} size={14} /></div>
+    <div>
+      <div className="m-section-title">{title}</div>
+      {hint && <div className="m-section-hint">{hint}</div>}
+    </div>
+  </div>
+);
+
+const MobileApp = ({ tw, setTweak, toggleTheme }) => {
+  const [showSettings, setShowSettings] = React.useState(false);
+
+  return (
+    <div className="m-app" data-theme={tw.theme}>
+      <MobileHeader tw={tw} toggleTheme={toggleTheme} />
+
+      <main className="m-feed">
+        {/* Welcome */}
+        <section className="m-section">
+          <Welcome />
+        </section>
+
+        {/* Météo */}
+        <section className="m-section">
+          <MobileSectionHeader icon="weather" title="Météo" />
+          <Weather />
+        </section>
+
+        {/* Santé */}
+        <section className="m-section">
+          <MobileSectionHeader icon="health" title="Santé" hint="Données Withings" />
+          <Health />
+        </section>
+
+        {/* Productivité */}
+        <section className="m-section">
+          <MobileSectionHeader icon="productivity" title="Productivité" hint="Habitudes, objectifs, tâches" />
+          <Productivity />
+        </section>
+
+        {/* Finances */}
+        <section className="m-section">
+          <MobileSectionHeader icon="finances" title="Finances" />
+          <Finances />
+        </section>
+
+        {/* Agenda */}
+        <section className="m-section">
+          <MobileSectionHeader icon="agenda" title="Agenda" />
+          <Agenda />
+        </section>
+
+        {/* Citation */}
+        {tw.showQuote && (
+          <section className="m-section">
+            <Quote />
+          </section>
+        )}
+
+        {/* Bouton Paramètres en bas */}
+        <button className="m-settings-btn" onClick={() => setShowSettings(true)}>
+          <Icon name="settings" size={16} /> Paramètres
+        </button>
+
+        <div className="m-feed-end">— fin du feed —</div>
+      </main>
+
+      {/* Drawer Paramètres */}
+      {showSettings && (
+        <div className="m-settings-overlay" onClick={() => setShowSettings(false)}>
+          <div className="m-settings-drawer" onClick={e => e.stopPropagation()}>
+            <div className="m-settings-head">
+              <div className="m-settings-title">Paramètres</div>
+              <button className="m-close-btn" onClick={() => setShowSettings(false)} aria-label="Fermer">✕</button>
+            </div>
+            <div className="m-settings-body">
+              <SettingsView tw={tw} setTweak={setTweak} />
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 /* === App === */
 const App = () => {
   const [tw, setTweak] = useTweaks(TWEAK_DEFAULTS);
   const [active, setActive] = React.useState("home");
+  const device = useDevice();
   /* Skip intro si :
      - mobile (≤ 600px) — perf + safety
      - déjà vue il y a < 6h
@@ -1360,6 +1494,12 @@ const App = () => {
 
   const toggleTheme = () => setTweak("theme", tw.theme === "dark" ? "light" : "dark");
 
+  /* MOBILE → feed vertical scrollable, pas d'intro, pas de tabs */
+  if (device === 'mobile') {
+    return <MobileApp tw={tw} setTweak={setTweak} toggleTheme={toggleTheme} />;
+  }
+
+  /* DESKTOP → dashboard original avec sidebar + tabs + intro */
   return (
     <>
       {!introDone && <IntroAnimation onDone={handleIntroDone} />}
