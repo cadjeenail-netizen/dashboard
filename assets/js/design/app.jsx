@@ -1111,26 +1111,44 @@ const SField = ({ value, onChange, type = "text" }) => (
 
 /* === Settings === */
 
-/* Helper : useState persisté via storage.js */
+/* Helper : useState persisté via localStorage directement (pas de dépendance timing window.Nebula) */
 function usePersistedState(key, defaults) {
+  const storageKey = 'dashboard_vie_' + key;
   const [value, setValue] = React.useState(() => {
-    const saved = window.Nebula?.storage?.get(key, null);
-    return saved ? { ...defaults, ...saved } : defaults;
+    try {
+      const raw = localStorage.getItem(storageKey);
+      if (raw) return { ...defaults, ...JSON.parse(raw) };
+    } catch {}
+    return defaults;
   });
   const update = React.useCallback((updater) => {
     setValue(prev => {
       const next = typeof updater === 'function' ? updater(prev) : updater;
-      window.Nebula?.storage?.set(key, next);
+      try { localStorage.setItem(storageKey, JSON.stringify(next)); } catch {}
+      window.Nebula?.storage?.set?.(key, next);
       return next;
     });
-  }, [key]);
+  }, [key, storageKey]);
   return [value, update];
 }
 
 const SettingsView = ({ tw, setTweak }) => {
-  const [profile, setProfile] = usePersistedState('profile', { name: "Na'îl Cadjee", email: "noe@nebula.app", tz: "Europe/Paris" });
+  /* Email réel depuis la session Supabase */
+  const authEmail = React.useMemo(() => {
+    try { return window.Nebula?.auth?.getSession?.()?.user?.email || null; } catch { return null; }
+  }, []);
+
+  const profileDefaults = { name: authEmail ? authEmail.split('@')[0] : "Nebula", tz: "Europe/Paris" };
+  const [profile, setProfile] = usePersistedState('profile', profileDefaults);
   const [notifs,  setNotifs]  = usePersistedState('notifs',  { daily: true, weekly: true, alerts: true, marketing: false });
   const [privacy, setPrivacy] = usePersistedState('privacy', { share: true, icloud: true, autoUpdate: true });
+  const [profileSaved, setProfileSaved] = React.useState(false);
+
+  const saveProfile = () => {
+    try { localStorage.setItem('dashboard_vie_profile', JSON.stringify(profile)); } catch {}
+    setProfileSaved(true);
+    setTimeout(() => setProfileSaved(false), 2200);
+  };
 
   /* (helpers SCard/SRow/SToggle/SField sont maintenant définis hors du composant) */
   const Toggle = SToggle;
@@ -1139,14 +1157,26 @@ const SettingsView = ({ tw, setTweak }) => {
   return (
     <div className="settings-view" style={{ gridColumn: "1 / -1", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
       <SCard title="Profil" desc="Tes informations personnelles">
-        <SRow label="Nom"><Field value={profile.name} onChange={v => setProfile(p => ({...p, name: v}))} /></SRow>
-        <SRow label="Email"><Field value={profile.email} onChange={v => setProfile(p => ({...p, email: v}))} type="email" /></SRow>
+        <SRow label="Nom"><Field value={profile.name || ""} onChange={v => setProfile(p => ({...p, name: v}))} /></SRow>
+        <SRow label="Email">
+          <span style={{ fontSize: 12.5, color: "var(--text-2)", fontFamily: "Geist Mono, monospace", textAlign: "right", wordBreak: "break-all" }}>
+            {authEmail || "—"}
+          </span>
+        </SRow>
         <SRow label="Fuseau horaire" last>
-          <select value={profile.tz} onChange={e => setProfile(p => ({...p, tz: e.target.value}))}
+          <select value={profile.tz || "Europe/Paris"} onChange={e => setProfile(p => ({...p, tz: e.target.value}))}
             style={{ background: "var(--surface-2)", border: "1px solid var(--border-strong)", borderRadius: 8, padding: "6px 10px", fontSize: 12.5, color: "var(--text)", fontFamily: "inherit", outline: "none" }}>
             <option>Europe/Paris</option><option>Europe/London</option><option>America/New_York</option><option>Asia/Tokyo</option>
           </select>
         </SRow>
+        <div style={{ marginTop: 12, display: "flex", justifyContent: "flex-end" }}>
+          <button onClick={saveProfile} style={{ padding: "7px 18px", borderRadius: 8, border: 0,
+            background: profileSaved ? "var(--green, #15a86b)" : "var(--accent)", color: "white",
+            fontSize: 12.5, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
+            transition: "background 0.25s", display: "flex", alignItems: "center", gap: 6 }}>
+            {profileSaved ? "✓ Sauvegardé" : "Enregistrer"}
+          </button>
+        </div>
       </SCard>
 
       <SCard title="Apparence" desc="Personnalise l'interface">

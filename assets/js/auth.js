@@ -118,6 +118,25 @@ export function signOut() {
 }
 
 /* ════════════════════════════════════════════════════════
+   MISE À JOUR PROFIL — user_metadata Supabase
+   ════════════════════════════════════════════════════════ */
+export async function updateProfile(data) {
+  const token = getAccessToken();
+  if (!token) throw new Error('Non authentifié');
+  const res = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+      'apikey': SUPABASE_ANON_KEY,
+    },
+    body: JSON.stringify({ data }),
+  });
+  if (!res.ok) throw new Error('Mise à jour profil échouée');
+  return res.json();
+}
+
+/* ════════════════════════════════════════════════════════
    OAUTH (Google, Apple, etc.)
    Redirection vers Supabase qui gère le flow OAuth
    ════════════════════════════════════════════════════════ */
