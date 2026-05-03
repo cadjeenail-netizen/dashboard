@@ -34,34 +34,134 @@
 }
 
 [data-theme="dark"] {
-  --bg: #0b0a14;
-  --bg-grad-1: #131124;
-  --bg-grad-2: #0a0913;
-  --surface: #16142a;
-  --surface-2: #1c1936;
-  --surface-elev: #1f1c3c;
-  --border: rgba(255, 255, 255, 0.06);
-  --border-strong: rgba(255, 255, 255, 0.10);
-  --text: #ece9fb;
-  --text-2: #a6a3c8;
-  --text-3: #6f6c92;
-  --muted: #4a4870;
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3), 0 2px 6px rgba(0, 0, 0, 0.25);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.35), 0 12px 32px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.45), 0 24px 64px rgba(0, 0, 0, 0.5);
-  --accent: #9d83ff;
-  --accent-2: #b8a4ff;
-  --accent-soft: rgba(157, 131, 255, 0.18);
-  --green: #4ade80;
-  --green-soft: rgba(74, 222, 128, 0.16);
-  --red: #ff7290;
-  --red-soft: rgba(255, 114, 144, 0.16);
-  --blue: #6dd5f4;
-  --blue-soft: rgba(109, 213, 244, 0.16);
-  --amber: #fcb852;
-  --amber-soft: rgba(252, 184, 82, 0.16);
-  --pink: #ff8cc4;
-  --pink-soft: rgba(255, 140, 196, 0.16);
+  /* ── Fond deep navy (référence) ── */
+  --bg:          #07101e;
+  --bg-grad-1:   #0c1a30;
+  --bg-grad-2:   #050d18;
+  /* ── Surfaces (cartes, sidebar) ── */
+  --surface:     #0e1929;
+  --surface-2:   #132038;
+  --surface-elev:#192840;
+  /* ── Bordures très subtiles ── */
+  --border:       rgba(255, 255, 255, 0.055);
+  --border-strong:rgba(255, 255, 255, 0.09);
+  /* ── Textes ── */
+  --text:   #ddeaf8;
+  --text-2: #7898b8;
+  --text-3: #445f7a;
+  --muted:  #263d55;
+  /* ── Ombres plus prononcées ── */
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.45), 0 2px 8px rgba(0,0,0,0.35);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.55), 0 12px 36px rgba(0,0,0,0.5);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.65), 0 24px 64px rgba(0,0,0,0.6);
+  /* ── Accent (même violet que light pour cohérence) ── */
+  --accent:     #7c5cff;
+  --accent-2:   #a28eff;
+  --accent-soft:rgba(124, 92, 255, 0.22);
+  /* ── Couleurs sémantiques (plus saturées en dark) ── */
+  --green:      #22d07a;
+  --green-soft: rgba(34, 208, 122, 0.15);
+  --red:        #ff4f7b;
+  --red-soft:   rgba(255, 79, 123, 0.15);
+  --blue:       #38c2f8;
+  --blue-soft:  rgba(56, 194, 248, 0.15);
+  --amber:      #fbbf24;
+  --amber-soft: rgba(251, 191, 36, 0.15);
+  --pink:       #f472b6;
+  --pink-soft:  rgba(244, 114, 182, 0.15);
+}
+
+/* ════════════════════════════════════════════════════════
+   DARK MODE — Overrides visuels (style référence)
+   ════════════════════════════════════════════════════════ */
+
+/* ── Fond de l'app : gradient navy profond ── */
+[data-theme="dark"] .app {
+  background:
+    radial-gradient(ellipse 1100px 700px at -5% -10%, rgba(40,20,120,0.28), transparent 55%),
+    radial-gradient(ellipse 900px 600px at 110% 110%, rgba(10,40,100,0.22), transparent 55%),
+    var(--bg);
+}
+
+/* ── Sidebar : légèrement plus sombre que les cards ── */
+[data-theme="dark"] .sidebar {
+  background: #08111d;
+  border-right: 1px solid rgba(255,255,255,0.04);
+  box-shadow: 2px 0 24px rgba(0,0,0,0.4);
+}
+
+/* ── Nav item actif : pill solid accent (comme la référence) ── */
+[data-theme="dark"] .nav-item:hover {
+  background: rgba(255,255,255,0.055);
+  color: var(--text);
+}
+[data-theme="dark"] .nav-item.active {
+  background: var(--accent);
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 4px 20px rgba(124,92,255,0.45), inset 0 1px 0 rgba(255,255,255,0.15);
+  font-weight: 600;
+}
+[data-theme="dark"] .nav-item.active .icon  { color: rgba(255,255,255,0.9); }
+[data-theme="dark"] .nav-item.active::before { display: none; }
+[data-theme="dark"] .nav-item.active .badge {
+  background: rgba(255,255,255,0.22);
+  color: #fff;
+  border-color: transparent;
+}
+
+/* ── Brand ── */
+[data-theme="dark"] .brand { border-bottom-color: rgba(255,255,255,0.05); }
+[data-theme="dark"] .sidebar-foot {
+  background: rgba(255,255,255,0.04);
+  border-color: rgba(255,255,255,0.06);
+}
+
+/* ── Cards : fond plus profond, ombre plus marquée ── */
+[data-theme="dark"] .card {
+  background: var(--surface);
+  border-color: rgba(255,255,255,0.06);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.04);
+}
+
+/* ── Topbar : séparateur subtil ── */
+[data-theme="dark"] .topbar {
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  padding-bottom: 16px;
+}
+[data-theme="dark"] .search {
+  background: rgba(255,255,255,0.05);
+  border-color: rgba(255,255,255,0.08);
+}
+[data-theme="dark"] .search:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(124,92,255,0.18);
+}
+[data-theme="dark"] .clock {
+  background: rgba(255,255,255,0.05);
+  border-color: rgba(255,255,255,0.08);
+}
+[data-theme="dark"] .icon-btn {
+  background: rgba(255,255,255,0.05);
+  border-color: rgba(255,255,255,0.08);
+}
+[data-theme="dark"] .icon-btn:hover {
+  background: rgba(255,255,255,0.09);
+}
+
+/* ── Métriques santé : valeurs plus visibles ── */
+[data-theme="dark"] .health-board .metric {
+  background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+  border-color: rgba(255,255,255,0.07);
+}
+[data-theme="dark"] .health-board .chart-card {
+  background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+  border-color: rgba(255,255,255,0.07);
+}
+
+/* ── Pill / badge ── */
+[data-theme="dark"] .pill {
+  border: 1px solid rgba(255,255,255,0.08);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }

@@ -1,7 +1,7 @@
 /* App.jsx — Nebula Dashboard (adapté : modules vanilla via window.Nebula) */
 
 const TWEAK_DEFAULTS = {
-  "theme": "light",
+  "theme": "dark",
   "accent": "violet",
   "density": "comfortable",
   "showQuote": true,
