@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com data:; connect-src 'self' https://*.supabase.co https://accounts.google.com; img-src 'self' data:; base-uri 'self'; form-action 'self' https://accounts.google.com https://ueduodyudfvuiskpjzyy.supabase.co;" />
+  <title>Connexion — Nebula</title>
+  <link rel="icon" type="image/svg+xml" href="assets/img/nebula-logo.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Inter+Tight:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --accent: #7c5cff;
+      --accent-hover: #6a4bf0;
+      --accent-soft: rgba(124, 92, 255, 0.18);
+      --red: #e94e7d;
+      --green: #15a86b;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: 'Geist', 'Inter Tight', system-ui, sans-serif;
+      background: #07061a;
+      color: #e8e5ff;
+      overflow: hidden;
+    }
+
+    /* ── Fond étoilé ── */
+    .bg {
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 900px 600px at 25% -5%,  rgba(124,92,255,0.28), transparent 55%),
+        radial-gradient(ellipse 700px 500px at 80% 110%, rgba(233,78,125,0.20), transparent 55%),
+        radial-gradient(ellipse 500px 350px at 60% 50%,  rgba(58,174,216,0.10), transparent 60%),
+        #07061a;
+    }
+
+    .stars {
+      position: fixed;
+      inset: 0;
+      background-image:
+        radial-gradient(circle, rgba(255,255,255,0.85) 1px, transparent 1px),
+        radial-gradient(circle, rgba(255,255,255,0.55) 1px, transparent 1px),
+        radial-gradient(circle, rgba(255,255,255,0.35) 1px, transparent 1px);
+      background-size: 320px 280px, 210px 190px, 160px 140px;
+      background-position: 0 0, 80px 60px, 30px 100px;
+      animation: twinkle 8s ease-in-out infinite alternate;
+      opacity: 0.6;
+    }
+    @keyframes twinkle {
+      0%   { opacity: 0.45; }
+      100% { opacity: 0.75; }
+    }
+
+    /* ── Centrage ── */
+    .page {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+    }
+
+    /* ── Carte ── */
+    .card {
+      width: min(420px, 100%);
+      background: rgba(255,255,255,0.055);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 22px;
+      padding: 40px 36px 34px;
+      backdrop-filter: blur(28px) saturate(130%);
+      -webkit-backdrop-filter: blur(28px) saturate(130%);
+      box-shadow: 0 8px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.12);
+      animation: cardIn 0.5s cubic-bezier(0.22,1,0.36,1) both;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    @keyframes cardIn {
+      from { opacity: 0; transform: translateY(24px) scale(0.97); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* ── Logo + Brand ── */
+    .logo {
+      width: 52px;
+      height: 52px;
+      margin-bottom: 14px;
+      filter: drop-shadow(0 0 12px rgba(168,85,247,0.6));
+      animation: logoPulse 4s ease-in-out infinite;
+    }
+    @keyframes logoPulse {
+      0%, 100% { filter: drop-shadow(0 0 10px rgba(168,85,247,0.5)); }
+      50%       { filter: drop-shadow(0 0 20px rgba(168,85,247,0.9)); }
+    }
+
+    .brand {
+      font-family: 'Inter Tight', sans-serif;
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.035em;
+      color: #f0eeff;
+      margin-bottom: 5px;
+    }
+
+    .tagline {
+      font-size: 13.5px;
+      color: rgba(200,195,255,0.6);
+      font-weight: 500;
+      margin-bottom: 28px;
+    }
+
+    /* ── Boutons OAuth ── */
+    .oauth-group {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+      margin-bottom: 22px;
+    }
+
+    .oauth-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      padding: 11px 16px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.08);
+      color: #e8e4ff;
+      font-family: 'Geist', sans-serif;
+      font-size: 13.5px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s, box-shadow 0.15s, border-color 0.15s;
+    }
+    .oauth-btn:hover {
+      background: rgba(255,255,255,0.14);
+      border-color: rgba(255,255,255,0.24);
+      box-shadow: 0 2px 12px rgba(0,0,0,0.25);
+    }
+    .oauth-btn:active { transform: scale(0.99); }
+
+    /* ── Séparateur ── */
+    .divider {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+      color: rgba(180,175,220,0.45);
+      font-size: 11.5px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: rgba(255,255,255,0.10);
+    }
+
+    /* ── Tabs ── */
+    .tabs {
+      display: flex;
+      width: 100%;
+      background: rgba(0,0,0,0.25);
+      border-radius: 12px;
+      padding: 3px;
+      margin-bottom: 18px;
+    }
+
+    .tab {
+      flex: 1;
+      padding: 8px 12px;
+      border: 0;
+      border-radius: 10px;
+      background: transparent;
+      color: rgba(180,175,220,0.55);
+      font-family: 'Geist', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.18s;
+    }
+    .tab.active {
+      background: rgba(255,255,255,0.10);
+      color: #e8e5ff;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.25);
+    }
+
+    /* ── Formulaire ── */
+    .form {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .input {
+      width: 100%;
+      padding: 11px 15px;
+      border-radius: 12px;
+      border: 1.5px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.07);
+      color: #e8e5ff;
+      font-family: 'Geist', sans-serif;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+    }
+    .input::placeholder { color: rgba(200,195,255,0.35); }
+    .input:focus {
+      border-color: var(--accent);
+      background: rgba(124,92,255,0.09);
+      box-shadow: 0 0 0 3px rgba(124,92,255,0.20);
+    }
+
+    .error {
+      font-size: 12.5px;
+      color: var(--red);
+      font-weight: 500;
+      text-align: center;
+      min-height: 18px;
+    }
+
+    .submit-btn {
+      width: 100%;
+      padding: 12px;
+      border-radius: 12px;
+      border: 0;
+      background: var(--accent);
+      color: white;
+      font-family: 'Geist', 'Inter Tight', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
+      box-shadow: 0 2px 16px rgba(124,92,255,0.45);
+      margin-top: 2px;
+    }
+    .submit-btn:hover:not(:disabled) {
+      background: var(--accent-hover);
+      box-shadow: 0 4px 22px rgba(124,92,255,0.60);
+    }
+    .submit-btn:active:not(:disabled) { transform: scale(0.99); }
+    .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .hint {
+      font-size: 12px;
+      color: rgba(180,175,220,0.50);
+      text-align: center;
+      margin-top: 10px;
+      min-height: 16px;
+      line-height: 1.5;
+    }
+
+    /* ── Confirmation email ── */
+    .confirm-box {
+      width: 100%;
+      text-align: center;
+      padding: 8px 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+    .confirm-icon { font-size: 40px; }
+    .confirm-box p { font-size: 13.5px; color: rgba(200,195,255,0.75); line-height: 1.6; }
+    .confirm-box strong { color: #e8e5ff; }
+
+    /* ── Spinner ── */
+    .spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255,255,255,0.4);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+<div class="bg"></div>
+<div class="stars"></div>
+
+<div class="page">
+  <div class="card">
+
+    <img src="assets/img/nebula-logo.svg" class="logo" alt="Nebula" />
+    <div class="brand">Nebula</div>
+    <div class="tagline">Ton univers personnel</div>
+
+    <!-- OAuth -->
+    <div class="oauth-group">
+      <button class="oauth-btn" id="btn-google" type="button">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+        </svg>
+        Continuer avec Google
+      </button>
+      <button class="oauth-btn" id="btn-github" type="button">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="currentColor">
+          <path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.27-.01-1-.02-1.96-3.2.69-3.87-1.54-3.87-1.54-.52-1.33-1.28-1.69-1.28-1.69-1.05-.71.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.76 2.7 1.25 3.36.96.1-.75.4-1.25.73-1.54-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.18-3.1-.12-.29-.51-1.46.11-3.04 0 0 .97-.31 3.18 1.18.92-.26 1.91-.39 2.89-.39.98 0 1.97.13 2.89.39 2.21-1.49 3.18-1.18 3.18-1.18.62 1.58.23 2.75.11 3.04.74.81 1.18 1.84 1.18 3.1 0 4.42-2.69 5.4-5.25 5.68.41.36.78 1.06.78 2.13 0 1.54-.01 2.79-.01 3.17 0 .31.21.68.8.56C20.21 21.39 23.5 17.08 23.5 12 23.5 5.65 18.35.5 12 .5z"/>
+        </svg>
+        Continuer avec GitHub
+      </button>
+    </div>
+
+    <div class="divider"><span>ou</span></div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab active" id="tab-login">Se connecter</button>
+      <button class="tab" id="tab-register">Créer un compte</button>
+    </div>
+
+    <!-- Form -->
+    <div class="form" id="form-area">
+      <input class="input" id="inp-email"    type="email"    placeholder="Adresse email"  autocomplete="email" />
+      <input class="input" id="inp-password" type="password" placeholder="Mot de passe"   autocomplete="current-password" />
+      <div class="error" id="err"></div>
+      <button class="submit-btn" id="btn-submit">Se connecter</button>
+    </div>
+
+    <div class="hint" id="hint"></div>
+  </div>
+</div>
+
+<script>
+  const SUPABASE_URL      = 'https://ueduodyudfvuiskpjzyy.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVlZHVvZHl1ZGZ2dWlza3Bqenl5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczODUwMjksImV4cCI6MjA5Mjk2MTAyOX0.7TqJREgzTT6cMgxQvemvVsZjtqwg35XPrU82xhvyE5s';
+  const SESSION_KEY       = 'dashboard_vie_auth_session';
+  const DASHBOARD         = 'index.html';
+
+  /* ── 1. Callback OAuth Supabase via le hash (#access_token=...) ── */
+  (async function handleOAuthHash() {
+    if (!location.hash || !location.hash.includes('access_token=')) return;
+    const params      = new URLSearchParams(location.hash.slice(1));
+    const access_token  = params.get('access_token');
+    const refresh_token = params.get('refresh_token');
+    const expires_in    = parseInt(params.get('expires_in') || '3600', 10);
+    if (!access_token) return;
+
+    /* Vérifie le token côté Supabase */
+    try {
+      const res = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+        headers: { 'Authorization': `Bearer ${access_token}`, 'apikey': SUPABASE_ANON_KEY }
+      });
+      if (!res.ok) return;
+      const user = await res.json();
+      const session = {
+        access_token,
+        refresh_token,
+        expires_at: Math.floor(Date.now() / 1000) + expires_in,
+        user: { id: user.id, email: user.email }
+      };
+      localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+      history.replaceState(null, '', location.pathname);
+      window.location.replace(DASHBOARD);
+    } catch { /* ignore */ }
+  })();
+
+  /* ── 2. Si déjà connecté → dashboard ── */
+  (function checkExistingSession() {
+    try {
+      const s = JSON.parse(localStorage.getItem(SESSION_KEY) || 'null');
+      if (s?.access_token && s.expires_at && Date.now() / 1000 < s.expires_at - 60) {
+        window.location.replace(DASHBOARD);
+      }
+    } catch { /* ignore */ }
+  })();
+
+  /* ── Helpers ── */
+  function saveSession(data) {
+    const s = {
+      access_token:  data.access_token,
+      refresh_token: data.refresh_token,
+      expires_at:    Math.floor(Date.now() / 1000) + (data.expires_in ?? 3600),
+      user:          data.user,
+    };
+    localStorage.setItem(SESSION_KEY, JSON.stringify(s));
+  }
+
+  async function apiSignIn(email, password) {
+    const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON_KEY },
+      body: JSON.stringify({ email, password }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error_description || data.msg || data.message || 'Email ou mot de passe incorrect.');
+    saveSession(data);
+  }
+
+  async function apiSignUp(email, password) {
+    const res = await fetch(`${SUPABASE_URL}/auth/v1/signup`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON_KEY },
+      body: JSON.stringify({ email, password }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error_description || data.msg || data.message || 'Erreur lors de la création du compte.');
+    const session = data.session ?? (data.access_token ? data : null);
+    if (session) { saveSession(session); return true; }
+    return false; /* email confirmation required */
+  }
+
+  /* ── DOM refs ── */
+  const inpEmail   = document.getElementById('inp-email');
+  const inpPass    = document.getElementById('inp-password');
+  const errEl      = document.getElementById('err');
+  const hintEl     = document.getElementById('hint');
+  const btnSubmit  = document.getElementById('btn-submit');
+  const formArea   = document.getElementById('form-area');
+  const tabLogin   = document.getElementById('tab-login');
+  const tabRegister= document.getElementById('tab-register');
+
+  let mode = 'login';
+
+  function setMode(m) {
+    mode = m;
+    tabLogin.classList.toggle('active', m === 'login');
+    tabRegister.classList.toggle('active', m === 'register');
+    btnSubmit.textContent = m === 'login' ? 'Se connecter' : 'Créer mon compte';
+    inpPass.autocomplete  = m === 'login' ? 'current-password' : 'new-password';
+    errEl.textContent     = '';
+    hintEl.textContent    = m === 'register'
+      ? 'Mot de passe : 12 caractères minimum, dont chiffres et lettres.'
+      : '';
+  }
+
+  tabLogin.addEventListener('click',    () => setMode('login'));
+  tabRegister.addEventListener('click', () => setMode('register'));
+
+  async function handleSubmit() {
+    const email    = inpEmail.value.trim();
+    const password = inpPass.value;
+    errEl.textContent = '';
+
+    if (!email || !password) { errEl.textContent = 'Remplis tous les champs.'; return; }
+    if (mode === 'register') {
+      if (password.length < 12)  { errEl.textContent = 'Mot de passe : 12 caractères minimum.'; return; }
+      if (!/[a-zA-Z]/.test(password) || !/\d/.test(password)) {
+        errEl.textContent = 'Le mot de passe doit contenir une lettre et un chiffre.'; return;
+      }
+    }
+
+    btnSubmit.disabled = true;
+    btnSubmit.innerHTML = `<span class="spinner"></span>${mode === 'login' ? 'Connexion…' : 'Création…'}`;
+
+    try {
+      if (mode === 'login') {
+        await apiSignIn(email, password);
+        window.location.replace(DASHBOARD);
+      } else {
+        const confirmed = await apiSignUp(email, password);
+        if (confirmed) {
+          window.location.replace(DASHBOARD);
+        } else {
+          /* Email de confirmation envoyé */
+          formArea.innerHTML = `
+            <div class="confirm-box">
+              <div class="confirm-icon">✉️</div>
+              <p>Un email de confirmation a été envoyé à<br/><strong>${email.replace(/</g,'&lt;')}</strong>.</p>
+              <p style="margin-top:4px;font-size:12.5px;opacity:0.7">Confirme ton adresse puis reviens te connecter.</p>
+              <button class="submit-btn" style="margin-top:14px;width:auto;padding:10px 24px" onclick="location.reload()">Retour à la connexion</button>
+            </div>`;
+        }
+      }
+    } catch (err) {
+      errEl.textContent  = err.message;
+      btnSubmit.disabled = false;
+      btnSubmit.textContent = mode === 'login' ? 'Se connecter' : 'Créer mon compte';
+    }
+  }
+
+  btnSubmit.addEventListener('click', handleSubmit);
+  [inpEmail, inpPass].forEach(el => {
+    el.addEventListener('keydown', e => { if (e.key === 'Enter') handleSubmit(); });
+  });
+
+  /* ── OAuth providers ── */
+  function startOAuth(provider) {
+    const redirectTo = encodeURIComponent(location.origin + location.pathname);
+    location.href = `${SUPABASE_URL}/auth/v1/authorize?provider=${provider}&redirect_to=${redirectTo}`;
+  }
+
+  document.getElementById('btn-google').addEventListener('click', () => startOAuth('google'));
+  document.getElementById('btn-github').addEventListener('click', () => startOAuth('github'));
+
+  /* ── Focus auto ── */
+  setTimeout(() => inpEmail.focus(), 300);
+</script>
+</body>
+</html>

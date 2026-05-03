@@ -31,6 +31,25 @@
       const params = new URLSearchParams(window.location.search);
       const isReturningFromIntro = params.get("intro") === "done";
       const isOAuthCallback = params.has("code") || params.has("state");
+      /* Callback OAuth Supabase (Google/GitHub) — hash-based */
+      const isSupabaseOAuth = location.hash.includes('access_token=');
+
+      /* ── Garde d'auth : redirige vers login.html si non connecté ── */
+      if (!isOAuthCallback && !isSupabaseOAuth) {
+        try {
+          const raw = localStorage.getItem('dashboard_vie_auth_session');
+          const s   = JSON.parse(raw || 'null');
+          const ok  = s?.access_token && s.expires_at && (Date.now() / 1000 < s.expires_at - 60);
+          if (!ok) {
+            window.location.replace('login.html');
+            return;
+          }
+        } catch {
+          window.location.replace('login.html');
+          return;
+        }
+      }
+
       const introSeen = sessionStorage.getItem("nebula_intro_seen") === "1";
       const isMobileDevice = document.documentElement.dataset.device === 'mobile';
       let introEnabled = true;
