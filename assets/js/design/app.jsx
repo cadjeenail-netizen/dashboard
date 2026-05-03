@@ -1246,7 +1246,28 @@ const SettingsView = ({ tw, setTweak }) => {
           <button style={{ flex: 1, padding: "9px", borderRadius: 8, border: "1px solid var(--border-strong)", background: "var(--surface-2)", color: "var(--text-2)", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
             Exporter mes données
           </button>
-          <button style={{ flex: 1, padding: "9px", borderRadius: 8, border: "1px solid var(--red)", background: "transparent", color: "var(--red)", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
+          <button onClick={async () => {
+            if (!window.confirm('Supprimer définitivement ton compte et toutes tes données ? Cette action est irréversible.')) return;
+            const token = window.Nebula?.auth?.getAccessToken?.();
+            if (!token) { alert('Non connecté.'); return; }
+            try {
+              const r = await fetch('/api/delete-account', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` },
+              });
+              if (!r.ok) {
+                const d = await r.json().catch(() => ({}));
+                alert(d.error || 'Erreur lors de la suppression.');
+                return;
+              }
+              /* Nettoie tout et redirige vers login */
+              localStorage.clear();
+              sessionStorage.clear();
+              window.location.replace('login.html');
+            } catch {
+              alert('Erreur réseau. Réessaie.');
+            }
+          }} style={{ flex: 1, padding: "9px", borderRadius: 8, border: "1px solid var(--red)", background: "transparent", color: "var(--red)", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
             Supprimer le compte
           </button>
         </div>
