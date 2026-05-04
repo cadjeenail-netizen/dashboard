@@ -85,6 +85,35 @@ const useNow = () => {
 const fmtTime = (d) => `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}:${String(d.getSeconds()).padStart(2, "0")}`;
 const eur = (v) => `${v.toLocaleString("fr-FR")} €`;
 
+/* ══════════════════════════════════════════════════════════
+   Liquid Glass Button — effet verre liquide avec SVG filter
+   Adapté de shadcn/ui vers React CDN + CSS pur (sans TS/Tailwind)
+══════════════════════════════════════════════════════════ */
+const GlassFilter = () => (
+  <svg className="glass-filter-defs" aria-hidden="true">
+    <defs>
+      <filter id="liquid-glass-filter" x="0%" y="0%" width="100%" height="100%" colorInterpolationFilters="sRGB">
+        <feTurbulence type="fractalNoise" baseFrequency="0.05 0.05" numOctaves="1" seed="1" result="turbulence" />
+        <feGaussianBlur in="turbulence" stdDeviation="2" result="blurredNoise" />
+        <feDisplacementMap in="SourceGraphic" in2="blurredNoise" scale="70" xChannelSelector="R" yChannelSelector="B" result="displaced" />
+        <feGaussianBlur in="displaced" stdDeviation="4" result="finalBlur" />
+        <feComposite in="finalBlur" in2="finalBlur" operator="over" />
+      </filter>
+    </defs>
+  </svg>
+);
+
+const LiquidButton = ({ children, className = "", size = "md", onClick, disabled, style, type, ...props }) => {
+  const cls = ["liquid-btn", "liquid-btn--" + size, className].filter(Boolean).join(" ");
+  return (
+    <button className={cls} onClick={onClick} disabled={disabled} style={style} type={type || "button"} {...props}>
+      <div className="liquid-btn__glow" />
+      <div className="liquid-btn__backdrop" style={{ backdropFilter: 'url("#liquid-glass-filter")' }} />
+      <span className="liquid-btn__content">{children}</span>
+    </button>
+  );
+};
+
 /* === Sidebar === */
 const Sidebar = ({ active, setActive, theme, toggleTheme }) => {
   const items = [
@@ -382,7 +411,7 @@ const Weather = () => {
 };
 
 /* === Health === */
-const Health = () => {
+const Health = ({ mode = "full" }) => {
   const [chartTab, setChartTab] = React.useState("steps");
   const [range, setRange] = React.useState("7j");
   const rangeDays = { "7j": 7, "14j": 14, "30j": 30 }[range] || 7;
@@ -427,6 +456,97 @@ const Health = () => {
     }
     return out;
   })();
+
+  /* ── Vue Accueil : 2 cartes séparées ── */
+  if (mode === "home") {
+    const vitals = [
+      { l: "Sommeil",  v: avgSleep,  u: "h",    d: `${sleepHours.length} nuits`,                                            c: "var(--blue)"  },
+      { l: "FC moy.",  v: avgHR,     u: "bpm",  d: `${minHR}–${maxHR} bpm`,                                                c: "var(--red)"   },
+      { l: "Poids",    v: typeof lastWeight === "number" ? lastWeight.toFixed(1).replace(".",",") : "—", u: "kg",
+        d: wd.measures.weight.length ? `${wd.measures.weight.length} mesures` : "—",                                         c: "var(--green)" },
+      { l: "Calories", v: "2 184",   u: "kcal", d: "−210 kcal",                                                             c: "var(--amber)" },
+    ];
+    const chartData = chartTab === "steps"   ? stepsData
+                    : chartTab === "sleep"   ? sleepHours
+                    : [1980, 2240, 2410, 2680, 1850, 2920, 2184];
+    const chartAccent  = chartTab === "steps" ? "var(--accent)" : chartTab === "sleep" ? "var(--blue)"  : "var(--amber)";
+    const chartAccent2 = chartTab === "steps" ? "var(--blue)"   : chartTab === "sleep" ? "var(--accent)": "var(--pink)";
+    const chartTarget  = chartTab === "steps" ? 10000 : chartTab === "sleep" ? 8 : 2400;
+    const chartFmt     = chartTab === "steps" ? v => v >= 1000 ? `${(v/1000).toFixed(0)}k` : v
+                       : chartTab === "sleep" ? v => `${v}h`
+                       : v => `${(v/1000).toFixed(1)}k`;
+    const chartTitle   = chartTab === "steps" ? "Pas par jour" : chartTab === "sleep" ? "Sommeil" : "Calories";
+    const chartVal     = chartTab === "steps" ? `${avgSteps.toLocaleString("fr-FR")} moy.`
+                       : chartTab === "sleep" ? `${avgSleep} h moy.`
+                       : "2 184 kcal moy.";
+
+    return (
+      <>
+        {/* ── Carte A : graphique d'activité ── */}
+        <div className="card health-home-a">
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
+            <div>
+              <div style={{ fontSize:10, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--text-3)", marginBottom:5 }}>
+                Activité · {range}
+              </div>
+              <div style={{ display:"flex", alignItems:"baseline", gap:6 }}>
+                <span style={{ fontFamily:"Inter Tight,sans-serif", fontSize:28, fontWeight:700, color:chartAccent, letterSpacing:"-0.02em", lineHeight:1 }}>
+                  {chartTab === "steps" ? todaySteps.toLocaleString("fr-FR") : chartTab === "sleep" ? `${avgSleep} h` : "2 184"}
+                </span>
+                <span style={{ fontSize:11, color:"var(--text-3)" }}>{chartVal}</span>
+              </div>
+            </div>
+            <div style={{ display:"flex", flexDirection:"column", gap:5, alignItems:"flex-end" }}>
+              <div className="tabs" style={{ gap:2 }}>
+                {["steps","sleep","cal"].map(t => (
+                  <button key={t} className={`tab ${chartTab===t?"active":""}`} onClick={() => setChartTab(t)} style={{ padding:"4px 9px", fontSize:11 }}>
+                    {t==="steps"?"Pas":t==="sleep"?"Sommeil":"Cal."}
+                  </button>
+                ))}
+              </div>
+              <div className="tabs" style={{ gap:2 }}>
+                {["7j","14j","30j"].map(r => (
+                  <button key={r} className={`tab ${range===r?"active":""}`} onClick={() => setRange(r)} style={{ padding:"3px 8px", fontSize:10.5 }}>
+                    {r}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+          <div style={{ flex:1, minHeight:0, minWidth:0 }}>
+            <BarChart data={chartData} labels={days} target={chartTarget} fmt={chartFmt} accent={chartAccent} accent2={chartAccent2} />
+          </div>
+        </div>
+
+        {/* ── Carte B : vitaux 2×2 ── */}
+        <div className="card health-home-b">
+          <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:10 }}>
+            <Icon name="health" size={11} />
+            <span style={{ fontSize:10, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--text-3)" }}>Santé</span>
+            <span style={{ display:"flex", alignItems:"center", gap:4, marginLeft:"auto" }}>
+              <span style={{ width:6, height:6, borderRadius:"50%", display:"inline-block",
+                background: wd.connected ? "var(--green)" : "var(--text-3)",
+                boxShadow: wd.connected ? "0 0 0 3px var(--green-soft)" : "none" }} />
+              <span style={{ fontSize:9.5, fontWeight:600, color: wd.connected ? "var(--green)" : "var(--text-3)", textTransform:"uppercase", letterSpacing:"0.05em" }}>
+                {wd.loading ? "Sync…" : wd.connected ? "Live" : "Demo"}
+              </span>
+            </span>
+          </div>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8, flex:1 }}>
+            {vitals.map(({ l, v, u, d, c }, i) => (
+              <div key={i} style={{ background:"var(--surface-2)", borderRadius:12, padding:"11px 13px", border:"1px solid var(--border)", display:"flex", flexDirection:"column", justifyContent:"space-between" }}>
+                <div style={{ fontSize:9.5, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.07em", color:"var(--text-3)", marginBottom:6 }}>{l}</div>
+                <div style={{ fontFamily:"Inter Tight,sans-serif", fontSize:24, fontWeight:700, color:c, letterSpacing:"-0.02em", lineHeight:1 }}>
+                  {v}<small style={{ fontSize:11, fontWeight:500, color:"var(--text-3)", marginLeft:2 }}>{u}</small>
+                </div>
+                <div style={{ fontSize:10.5, color:"var(--text-3)", marginTop:5 }}>{d}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </>
+    );
+  }
 
   return (
     <div className="card health">
@@ -1013,12 +1133,13 @@ const WithingsAccount = () => {
           Synchroniser
         </button>
       )}
-      <button onClick={connected ? onDisconnect : onConnect} style={{ padding: "5px 11px", borderRadius: 7, fontSize: 11.5, fontWeight: 600, fontFamily: "inherit", cursor: "pointer",
-        background: connected ? "transparent" : "var(--accent)",
-        color: connected ? "var(--text-3)" : "white",
-        border: connected ? "1px solid var(--border-strong)" : 0 }}>
-        {connected ? "Déconnecter" : "Connecter"}
-      </button>
+      {connected ? (
+        <button onClick={onDisconnect} style={{ padding: "5px 11px", borderRadius: 7, fontSize: 11.5, fontWeight: 600, fontFamily: "inherit", cursor: "pointer", background: "transparent", color: "var(--text-3)", border: "1px solid var(--border-strong)" }}>
+          Déconnecter
+        </button>
+      ) : (
+        <LiquidButton size="sm" onClick={onConnect}>Connecter</LiquidButton>
+      )}
     </div>
   );
 };
@@ -1067,12 +1188,13 @@ const GoogleAccount = () => {
           Synchroniser
         </button>
       )}
-      <button onClick={connected ? onDisconnect : onConnect} style={{ padding: "5px 11px", borderRadius: 7, fontSize: 11.5, fontWeight: 600, fontFamily: "inherit", cursor: "pointer",
-        background: connected ? "transparent" : "var(--accent)",
-        color: connected ? "var(--text-3)" : "white",
-        border: connected ? "1px solid var(--border-strong)" : 0 }}>
-        {connected ? "Déconnecter" : "Connecter"}
-      </button>
+      {connected ? (
+        <button onClick={onDisconnect} style={{ padding: "5px 11px", borderRadius: 7, fontSize: 11.5, fontWeight: 600, fontFamily: "inherit", cursor: "pointer", background: "transparent", color: "var(--text-3)", border: "1px solid var(--border-strong)" }}>
+          Déconnecter
+        </button>
+      ) : (
+        <LiquidButton size="sm" onClick={onConnect}>Connecter</LiquidButton>
+      )}
     </div>
   );
 };
@@ -1170,12 +1292,16 @@ const SettingsView = ({ tw, setTweak }) => {
           </select>
         </SRow>
         <div style={{ marginTop: 12, display: "flex", justifyContent: "flex-end" }}>
-          <button onClick={saveProfile} style={{ padding: "7px 18px", borderRadius: 8, border: 0,
-            background: profileSaved ? "var(--green, #15a86b)" : "var(--accent)", color: "white",
-            fontSize: 12.5, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
-            transition: "background 0.25s", display: "flex", alignItems: "center", gap: 6 }}>
-            {profileSaved ? "✓ Sauvegardé" : "Enregistrer"}
-          </button>
+          {profileSaved ? (
+            <button style={{ padding: "7px 18px", borderRadius: 8, border: 0,
+              background: "var(--green, #15a86b)", color: "white",
+              fontSize: 12.5, fontWeight: 700, fontFamily: "inherit",
+              display: "flex", alignItems: "center", gap: 6, cursor: "default" }}>
+              ✓ Sauvegardé
+            </button>
+          ) : (
+            <LiquidButton size="sm" onClick={saveProfile}>Enregistrer</LiquidButton>
+          )}
         </div>
       </SCard>
 
@@ -1595,6 +1721,7 @@ const App = () => {
   return (
     <>
       {!introDone && <IntroAnimation onDone={handleIntroDone} />}
+      <GlassFilter />
     <div className="app" data-view={active}>
       <Sidebar active={active} setActive={setActive} theme={tw.theme} toggleTheme={toggleTheme} />
       <main className="main">
@@ -1603,7 +1730,7 @@ const App = () => {
           {active === "home" && <>
             <Welcome />
             <Weather />
-            <Health />
+            <Health mode="home" />
             <Productivity />
             <Finances />
             <Agenda />

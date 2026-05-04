@@ -2962,3 +2962,151 @@ body {
   .auth-confirm-msg p { color: #a8a4d4; }
 }
 
+/* ═══════════════════════════════════════════════════════════
+   LIQUID GLASS BUTTON
+   Effet verre liquide avec SVG feTurbulence + feDisplacementMap
+   Utilisé sur les CTAs principaux (Connecter, Enregistrer…)
+══════════════════════════════════════════════════════════════ */
+.glass-filter-defs {
+  display: none;
+  pointer-events: none;
+  position: absolute;
+}
+
+.liquid-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  border-radius: 999px;
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.2s ease;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+  white-space: nowrap;
+  overflow: visible;
+}
+.liquid-btn:hover  { transform: scale(1.07); }
+.liquid-btn:active { transform: scale(0.95); filter: brightness(0.9); }
+.liquid-btn:disabled { opacity: 0.45; pointer-events: none; }
+
+/* Sizes */
+.liquid-btn--sm  { padding: 5px 14px;  font-size: 11.5px; min-height: 28px; }
+.liquid-btn--md  { padding: 8px 20px;  font-size: 13px;   min-height: 34px; }
+.liquid-btn--lg  { padding: 11px 28px; font-size: 14px;   min-height: 40px; }
+
+/* ── Couche 1 : bords en verre (box-shadow inset) ── */
+.liquid-btn__glow {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 0;
+  /* Light mode : ombres sombres pour donner du relief */
+  box-shadow:
+    0 0 6px rgba(0,0,0,0.03),
+    0 2px 6px rgba(0,0,0,0.08),
+    inset  3px  3px 0.5px -3px   rgba(0,0,0,0.9),
+    inset -3px -3px 0.5px -3px   rgba(0,0,0,0.85),
+    inset  1px  1px 1px   -0.5px rgba(0,0,0,0.5),
+    inset -1px -1px 1px   -0.5px rgba(0,0,0,0.5),
+    inset  0    0   6px   6px    rgba(0,0,0,0.10),
+    inset  0    0   2px   2px    rgba(0,0,0,0.05),
+    0 0 12px rgba(255,255,255,0.15);
+  transition: box-shadow 0.25s ease;
+}
+.liquid-btn:hover .liquid-btn__glow {
+  box-shadow:
+    0 0 6px rgba(0,0,0,0.03),
+    0 4px 10px rgba(0,0,0,0.12),
+    inset  3px  3px 0.5px -3px   rgba(0,0,0,0.9),
+    inset -3px -3px 0.5px -3px   rgba(0,0,0,0.85),
+    inset  1px  1px 1px   -0.5px rgba(0,0,0,0.5),
+    inset -1px -1px 1px   -0.5px rgba(0,0,0,0.5),
+    inset  0    0   8px   8px    rgba(0,0,0,0.12),
+    inset  0    0   3px   3px    rgba(0,0,0,0.06),
+    0 0 18px rgba(255,255,255,0.2);
+}
+
+/* Dark mode : ombres claires sur fond sombre → effet glass brillant */
+[data-theme="dark"] .liquid-btn__glow {
+  box-shadow:
+    0 0 8px rgba(0,0,0,0.04),
+    0 2px 8px rgba(0,0,0,0.15),
+    inset  3px  3px 0.5px -3.5px rgba(255,255,255,0.09),
+    inset -3px -3px 0.5px -3.5px rgba(255,255,255,0.85),
+    inset  1px  1px 1px   -0.5px rgba(255,255,255,0.55),
+    inset -1px -1px 1px   -0.5px rgba(255,255,255,0.55),
+    inset  0    0   6px   6px    rgba(255,255,255,0.12),
+    inset  0    0   2px   2px    rgba(255,255,255,0.06),
+    0 0 14px rgba(0,0,0,0.25);
+}
+[data-theme="dark"] .liquid-btn:hover .liquid-btn__glow {
+  box-shadow:
+    0 0 8px rgba(0,0,0,0.04),
+    0 4px 14px rgba(0,0,0,0.22),
+    inset  3px  3px 0.5px -3.5px rgba(255,255,255,0.12),
+    inset -3px -3px 0.5px -3.5px rgba(255,255,255,0.9),
+    inset  1px  1px 1px   -0.5px rgba(255,255,255,0.65),
+    inset -1px -1px 1px   -0.5px rgba(255,255,255,0.65),
+    inset  0    0   8px   8px    rgba(255,255,255,0.16),
+    inset  0    0   3px   3px    rgba(255,255,255,0.08),
+    0 0 20px rgba(0,0,0,0.3);
+}
+
+/* ── Couche 2 : déformation backdrop (SVG filter) ── */
+.liquid-btn__backdrop {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  z-index: -1;
+  overflow: hidden;
+  /* backdrop-filter: url("#liquid-glass-filter") appliqué en inline style */
+}
+
+/* ── Couche 3 : contenu texte/icône ── */
+.liquid-btn__content {
+  position: relative;
+  z-index: 1;
+  pointer-events: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   HOME VIEW — Health split en 2 cartes (health-home-a/b)
+   health-home-a : graphique d'activité  (col 1–5, row 2)
+   health-home-b : vitaux 2×2            (col 6–8, row 2)
+══════════════════════════════════════════════════════════════ */
+.app[data-view="home"] .health-home-a {
+  grid-column: 1 / span 5;
+  grid-row: 2;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+.app[data-view="home"] .health-home-b {
+  grid-column: 6 / span 3;
+  grid-row: 2;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* Responsive : à 1150px les colonnes rétrécissent, on ajuste les paddings */
+@media (max-width: 1150px) {
+  .app[data-view="home"] .health-home-a,
+  .app[data-view="home"] .health-home-b {
+    padding: 13px 14px;
+  }
+}
+
