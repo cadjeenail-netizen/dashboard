@@ -4,12 +4,21 @@ const useDims = (ref) => {
   const [d, setD] = React.useState({ w: 400, h: 160 });
   React.useEffect(() => {
     if (!ref.current) return;
+    let raf;
     const ro = new ResizeObserver(([e]) => {
-      const r = e.contentRect;
-      setD({ w: Math.max(80, r.width), h: Math.max(60, r.height) });
+      /* Debounce via rAF : une seule mise à jour par frame */
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        const r = e.contentRect;
+        const w = Math.max(80, Math.floor(r.width));
+        const h = Math.max(60, Math.floor(r.height));
+        /* Ne setState QUE si les dimensions ont vraiment changé
+           (évite les re-renders → re-animation des barres) */
+        setD(prev => (prev.w === w && prev.h === h) ? prev : { w, h });
+      });
     });
     ro.observe(ref.current);
-    return () => ro.disconnect();
+    return () => { ro.disconnect(); cancelAnimationFrame(raf); };
   }, []);
   return d;
 };
