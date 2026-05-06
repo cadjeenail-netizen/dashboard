@@ -353,28 +353,103 @@ const Topbar = ({ tw, active = "home", setActive }) => {
   );
 };
 
-/* === Welcome card === */
-const Welcome = () => (
-  <div className="card welcome">
-    <div className="card-h">
-      <span className="title section-label"><Icon name="sparkle" size={11} /> Bienvenue</span>
-      <span className="spacer" />
-      <span className="pill">Streak 12 j</span>
-    </div>
-    <div className="welcome-content">
-      <div className="welcome-left">
-        <div className="welcome-eyebrow">Aujourd'hui</div>
-        <h2>4 tâches restantes, 2 habitudes à compléter.</h2>
-        <p>Tu as déjà marché 16 304 pas — bien au-dessus de ta moyenne. Continue ainsi.</p>
+/* === Welcome card (dynamique) === */
+function computeWelcomeData() {
+  const S = window.Nebula?.scoring;
+  const storage = window.Nebula?.storage;
+  if (!S || !storage) return { score: 0, streak: 0, feedback: "Chargement…", habitsDone: 0, habitsTotal: 0, totalScore: 0 };
+
+  const HABITS_DEFAULT = [
+    { id: 'sport',   icon: '🏃', name: 'Sport',      days: [0,0,0,0,0,0,0] },
+    { id: 'lecture', icon: '📚', name: 'Lecture',     days: [0,0,0,0,0,0,0] },
+    { id: 'eau',     icon: '💧', name: '2L d\'eau',   days: [0,0,0,0,0,0,0] },
+    { id: 'mediter', icon: '🧘', name: 'Méditation',  days: [0,0,0,0,0,0,0] },
+    { id: 'code',    icon: '💻', name: 'Coder 1h',    days: [0,0,0,0,0,0,0] },
+  ];
+
+  const habits      = storage.get('habits', HABITS_DEFAULT);
+  const todayIdx    = S.getTodayHabitsIndex();
+  const habitsDone  = habits.filter(h => h.days[todayIdx]).length;
+  const habitsTotal = habits.length;
+  const scoreData   = S.calculateTodayScore(habits);
+  const streakData  = S.getStreak();
+  const streak      = streakData.current;
+  const totalScore  = S.getTotalScore();
+
+  /* Score visuel 0-100 basé sur habitudes du jour */
+  const visualScore = habitsTotal > 0 ? Math.round((habitsDone / habitsTotal) * 100) : 0;
+  const feedback    = S.getDynamicFeedback(scoreData.points, streak, habitsDone, habitsTotal);
+
+  return { score: visualScore, points: scoreData.points, streak, streakBest: streakData.best, feedback, habitsDone, habitsTotal, totalScore };
+}
+
+const Welcome = () => {
+  const [data, setData]       = React.useState(() => computeWelcomeData());
+  const [animated, setAnimated] = React.useState(false);
+
+  React.useEffect(() => {
+    const refresh = () => {
+      setData(computeWelcomeData());
+      setAnimated(true);
+      setTimeout(() => setAnimated(false), 500);
+    };
+    window.addEventListener('habits-changed', refresh);
+    window.addEventListener('mood-changed',   refresh);
+    window.addEventListener('goals-changed',  refresh);
+    window.addEventListener('cloud-sync-ready', refresh);
+    return () => {
+      window.removeEventListener('habits-changed', refresh);
+      window.removeEventListener('mood-changed',   refresh);
+      window.removeEventListener('goals-changed',  refresh);
+      window.removeEventListener('cloud-sync-ready', refresh);
+    };
+  }, []);
+
+  const { score, points, streak, streakBest, feedback, habitsDone, habitsTotal, totalScore } = data;
+  const remaining = habitsTotal - habitsDone;
+
+  /* Résumé textuel */
+  let summary = "";
+  if (habitsTotal === 0) {
+    summary = "Ajoute ta première habitude pour commencer 🚀";
+  } else if (habitsDone === habitsTotal) {
+    summary = `Toutes les habitudes complètes ! ${streak > 0 ? `Streak ${streak} j 🔥` : ""}`;
+  } else if (remaining === 1) {
+    summary = `Encore 1 habitude pour la journée parfaite ✨`;
+  } else {
+    summary = `${remaining} habitude${remaining > 1 ? 's' : ''} restante${remaining > 1 ? 's' : ''} aujourd'hui.`;
+  }
+
+  return (
+    <div className="card welcome">
+      <div className="card-h">
+        <span className="title section-label"><Icon name="sparkle" size={11} /> Bienvenue</span>
+        <span className="spacer" />
+        {streak > 0 && (
+          <span className="pill streak-pill" title={`Record : ${streakBest} jours`}>🔥 {streak} j</span>
+        )}
       </div>
-      <div className="score-circle" style={{ "--p": 72 }}>
-        <div className="score-val">
-          <b>72</b><span>SCORE</span>
+      <div className="welcome-content">
+        <div className="welcome-left">
+          <div className="welcome-eyebrow">Aujourd'hui</div>
+          <h2>{summary}</h2>
+          <p className="welcome-feedback">{feedback}</p>
+          {totalScore > 0 && (
+            <div className="total-score-badge">
+              <Icon name="sparkle" size={10} /> {totalScore.toLocaleString('fr-FR')} pts au total
+            </div>
+          )}
+        </div>
+        <div className={`score-circle${animated ? ' score-pop' : ''}`} style={{ "--p": score }}>
+          <div className="score-val">
+            <b>{points > 0 ? `+${points}` : score}</b>
+            <span>{points > 0 ? 'PTS' : 'SCORE'}</span>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 /* === Weather === */
 const Weather = () => {
@@ -417,33 +492,28 @@ const Health = ({ mode = "full" }) => {
   const rangeDays = { "7j": 7, "14j": 14, "30j": 30 }[range] || 7;
   const wd = useWithings(rangeDays);
 
-  /* ── Mockdata fallback (si non connecté) ── */
-  const mockSteps = [7820, 6530, 9210, 11400, 5230, 14700, 16304];
-  const mockSleep = [7.2, 6.8, 7.5, 8.1, 7.0, 6.5, 7.6];
-  const mockHR = [62, 58, 64, 72, 84, 98, 92, 86, 78, 74, 80, 88, 94, 90, 82, 76, 70, 66, 64, 68, 72, 78, 70, 64];
-
-  /* ── Données réelles dérivées ── */
+  /* ── Données réelles Withings ── */
   const stepsData = wd.connected && wd.steps.length
-    ? wd.steps.slice(-7).map(d => d.steps || 0)
-    : mockSteps;
+    ? wd.steps.slice(-rangeDays).map(d => d.steps || 0)
+    : [];
   const sleepHours = wd.connected && wd.sleep.length
-    ? wd.sleep.slice(-7).map(s => {
-        const total = (s.deepsleepduration || 0) + (s.lightsleepduration || 0) + (s.remsleepduration || 0);
+    ? wd.sleep.slice(-rangeDays).map(s => {
+        const total = (s.data?.deepsleepduration || 0) + (s.data?.lightsleepduration || 0) + (s.data?.remsleepduration || 0);
         return Math.round((total / 3600) * 10) / 10;
       })
-    : mockSleep;
+    : [];
   const hrData = wd.connected && wd.hrHourly.length
     ? wd.hrHourly.map(h => h.val).filter(v => v != null)
-    : mockHR;
-  const todaySteps = wd.connected ? wd.todaySteps : 16304;
-  const avgSleep = sleepHours.length ? (sleepHours.reduce((a,b) => a+b, 0) / sleepHours.length).toFixed(1).replace('.', ',') : "7,4";
-  const avgSteps = stepsData.length ? Math.round(stepsData.reduce((a,b) => a+b, 0) / stepsData.length) : 8743;
+    : [];
+  const todaySteps = wd.connected ? wd.todaySteps : 0;
+  const avgSleep = sleepHours.length ? (sleepHours.reduce((a,b) => a+b, 0) / sleepHours.length).toFixed(1).replace('.', ',') : "—";
+  const avgSteps = stepsData.length ? Math.round(stepsData.reduce((a,b) => a+b, 0) / stepsData.length) : 0;
   const validHR = hrData.filter(v => v > 0);
-  const avgHR = validHR.length ? Math.round(validHR.reduce((a,b) => a+b, 0) / validHR.length) : 76;
-  const minHR = validHR.length ? Math.min(...validHR) : 58;
-  const maxHR = validHR.length ? Math.max(...validHR) : 98;
+  const avgHR = validHR.length ? Math.round(validHR.reduce((a,b) => a+b, 0) / validHR.length) : "—";
+  const minHR = validHR.length ? Math.min(...validHR) : "—";
+  const maxHR = validHR.length ? Math.max(...validHR) : "—";
   const lastWeight = wd.connected && wd.measures.weight.length
-    ? wd.measures.weight[wd.measures.weight.length - 1].val : 78.6;
+    ? wd.measures.weight[wd.measures.weight.length - 1].val : null;
 
   /* ── Labels jours (derniers N jours) ── */
   const days = (() => {
@@ -462,13 +532,13 @@ const Health = ({ mode = "full" }) => {
     const vitals = [
       { l: "Sommeil",  v: avgSleep,  u: "h",    d: `${sleepHours.length} nuits`,                                            c: "var(--blue)"  },
       { l: "FC moy.",  v: avgHR,     u: "bpm",  d: `${minHR}–${maxHR} bpm`,                                                c: "var(--red)"   },
-      { l: "Poids",    v: typeof lastWeight === "number" ? lastWeight.toFixed(1).replace(".",",") : "—", u: "kg",
+      { l: "Poids",    v: lastWeight !== null ? lastWeight.toFixed(1).replace(".",",") : "—", u: "kg",
         d: wd.measures.weight.length ? `${wd.measures.weight.length} mesures` : "—",                                         c: "var(--green)" },
-      { l: "Calories", v: "2 184",   u: "kcal", d: "−210 kcal",                                                             c: "var(--amber)" },
+      { l: "Calories", v: "—",        u: "kcal", d: "non disponible",                                                        c: "var(--amber)" },
     ];
     const chartData = chartTab === "steps"   ? stepsData
                     : chartTab === "sleep"   ? sleepHours
-                    : [1980, 2240, 2410, 2680, 1850, 2920, 2184];
+                    : [];
     const chartAccent  = chartTab === "steps" ? "var(--accent)" : chartTab === "sleep" ? "var(--blue)"  : "var(--amber)";
     const chartAccent2 = chartTab === "steps" ? "var(--blue)"   : chartTab === "sleep" ? "var(--accent)": "var(--pink)";
     const chartTarget  = chartTab === "steps" ? 10000 : chartTab === "sleep" ? 8 : 2400;
@@ -476,9 +546,9 @@ const Health = ({ mode = "full" }) => {
                        : chartTab === "sleep" ? v => `${v}h`
                        : v => `${(v/1000).toFixed(1)}k`;
     const chartTitle   = chartTab === "steps" ? "Pas par jour" : chartTab === "sleep" ? "Sommeil" : "Calories";
-    const chartVal     = chartTab === "steps" ? `${avgSteps.toLocaleString("fr-FR")} moy.`
-                       : chartTab === "sleep" ? `${avgSleep} h moy.`
-                       : "2 184 kcal moy.";
+    const chartVal     = chartTab === "steps" ? (wd.connected ? `${avgSteps.toLocaleString("fr-FR")} moy.` : "non connecté")
+                       : chartTab === "sleep" ? (avgSleep !== "—" ? `${avgSleep} h moy.` : "non connecté")
+                       : "non disponible";
 
     return (
       <>
@@ -491,7 +561,7 @@ const Health = ({ mode = "full" }) => {
               </div>
               <div style={{ display:"flex", alignItems:"baseline", gap:6 }}>
                 <span style={{ fontFamily:"Inter Tight,sans-serif", fontSize:28, fontWeight:700, color:chartAccent, letterSpacing:"-0.02em", lineHeight:1 }}>
-                  {chartTab === "steps" ? todaySteps.toLocaleString("fr-FR") : chartTab === "sleep" ? `${avgSleep} h` : "2 184"}
+                  {chartTab === "steps" ? (wd.connected ? todaySteps.toLocaleString("fr-FR") : "—") : chartTab === "sleep" ? (avgSleep !== "—" ? `${avgSleep} h` : "—") : "—"}
                 </span>
                 <span style={{ fontSize:11, color:"var(--text-3)" }}>{chartVal}</span>
               </div>
@@ -513,7 +583,7 @@ const Health = ({ mode = "full" }) => {
               </div>
             </div>
           </div>
-          <div style={{ flex:1, minHeight:0, minWidth:0 }}>
+          <div className="home-chart-wrap" style={{ flex:1, minHeight:0, minWidth:0 }}>
             <BarChart data={chartData} labels={days} target={chartTarget} fmt={chartFmt} accent={chartAccent} accent2={chartAccent2} />
           </div>
         </div>
@@ -528,21 +598,32 @@ const Health = ({ mode = "full" }) => {
                 background: wd.connected ? "var(--green)" : "var(--text-3)",
                 boxShadow: wd.connected ? "0 0 0 3px var(--green-soft)" : "none" }} />
               <span style={{ fontSize:9.5, fontWeight:600, color: wd.connected ? "var(--green)" : "var(--text-3)", textTransform:"uppercase", letterSpacing:"0.05em" }}>
-                {wd.loading ? "Sync…" : wd.connected ? "Live" : "Demo"}
+                {wd.loading ? "Sync…" : wd.connected ? "Live" : "Non connecté"}
               </span>
             </span>
           </div>
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8, flex:1 }}>
-            {vitals.map(({ l, v, u, d, c }, i) => (
-              <div key={i} style={{ background:"var(--surface-2)", borderRadius:12, padding:"11px 13px", border:"1px solid var(--border)", display:"flex", flexDirection:"column", justifyContent:"space-between" }}>
-                <div style={{ fontSize:9.5, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.07em", color:"var(--text-3)", marginBottom:6 }}>{l}</div>
-                <div style={{ fontFamily:"Inter Tight,sans-serif", fontSize:24, fontWeight:700, color:c, letterSpacing:"-0.02em", lineHeight:1 }}>
-                  {v}<small style={{ fontSize:11, fontWeight:500, color:"var(--text-3)", marginLeft:2 }}>{u}</small>
+          {!wd.connected && !wd.loading ? (
+            <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", flex:1, gap:10, textAlign:"center" }}>
+              <span style={{ fontSize:28 }}>⌚</span>
+              <div style={{ fontSize:12.5, fontWeight:600, color:"var(--text)" }}>Connecte ta montre Withings</div>
+              <div style={{ fontSize:11, color:"var(--text-3)", maxWidth:180 }}>Visualise tes pas, sommeil et fréquence cardiaque ici.</div>
+              <button onClick={() => window.Nebula?.withings?.startOAuth()} style={{ marginTop:4, padding:"7px 16px", borderRadius:8, border:"none", background:"var(--accent)", color:"#fff", fontSize:12, fontWeight:600, cursor:"pointer" }}>
+                Connecter Withings
+              </button>
+            </div>
+          ) : (
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8, flex:1 }}>
+              {vitals.map(({ l, v, u, d, c }, i) => (
+                <div key={i} style={{ background:"var(--surface-2)", borderRadius:12, padding:"11px 13px", border:"1px solid var(--border)", display:"flex", flexDirection:"column", justifyContent:"space-between" }}>
+                  <div style={{ fontSize:9.5, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.07em", color:"var(--text-3)", marginBottom:6 }}>{l}</div>
+                  <div style={{ fontFamily:"Inter Tight,sans-serif", fontSize:24, fontWeight:700, color:c, letterSpacing:"-0.02em", lineHeight:1 }}>
+                    {v}<small style={{ fontSize:11, fontWeight:500, color:"var(--text-3)", marginLeft:2 }}>{u}</small>
+                  </div>
+                  <div style={{ fontSize:10.5, color:"var(--text-3)", marginTop:5 }}>{d}</div>
                 </div>
-                <div style={{ fontSize:10.5, color:"var(--text-3)", marginTop:5 }}>{d}</div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </>
     );
@@ -584,23 +665,27 @@ const Health = ({ mode = "full" }) => {
         </div>
         <div className="metric weight">
           <div className="l">Poids</div>
-          <div className="v">{typeof lastWeight === "number" ? lastWeight.toFixed(1).replace('.', ',') : lastWeight}<small>kg</small></div>
+          <div className="v">{lastWeight !== null ? lastWeight.toFixed(1).replace('.', ',') : "—"}<small>kg</small></div>
           <div className="delta">{wd.measures.weight.length} mesure(s)</div>
         </div>
         <div className="metric cal">
           <div className="l">Calories</div>
-          <div className="v">2 184<small>kcal</small></div>
-          <div className="delta">−210 kcal</div>
+          <div className="v">—<small>kcal</small></div>
+          <div className="delta">non disponible</div>
         </div>
       </div>
 
       <div className="charts-row">
         <div className="chart-card">
-          <div style={{ display: "flex", alignItems: "flex-start" }}>
+          <div className="chart-hd" style={{ display: "flex", alignItems: "flex-start" }}>
             <div>
               <div className="ch-title">{chartTab === "steps" ? "Pas par jour" : chartTab === "sleep" ? "Sommeil par nuit" : "Calories brûlées"}</div>
               <div className="ch-val">
-                {chartTab === "steps" ? "8 743" : chartTab === "sleep" ? "7,4 h" : "2 184"}
+                {chartTab === "steps"
+                  ? (wd.connected ? avgSteps.toLocaleString("fr-FR") : "—")
+                  : chartTab === "sleep"
+                  ? (avgSleep !== "—" ? avgSleep + " h" : "—")
+                  : "—"}
                 <small>moy. {range}</small>
               </div>
             </div>
@@ -615,14 +700,14 @@ const Health = ({ mode = "full" }) => {
               ? <BarChart data={stepsData} labels={days} target={10000} fmt={(v) => v >= 1000 ? `${(v/1000).toFixed(0)}k` : v} />
               : chartTab === "sleep"
               ? <BarChart data={sleepHours} labels={days} accent="var(--blue)" accent2="var(--accent)" target={8} fmt={(v) => `${v}h`} />
-              : <BarChart data={[1980, 2240, 2410, 2680, 1850, 2920, 2184]} labels={days} accent="var(--amber)" accent2="var(--pink)" target={2400} fmt={(v) => `${(v/1000).toFixed(1)}k`} />
+              : <BarChart data={[]} labels={days} accent="var(--amber)" accent2="var(--pink)" target={2400} fmt={(v) => `${(v/1000).toFixed(1)}k`} />
             }
           </div>
         </div>
 
         <div className="chart-card">
-          <div className="ch-title">Fréquence cardiaque · {wd.connected && wd.hrHourly.length ? "aujourd'hui" : "24h"}</div>
-          <div className="ch-val">{avgHR} <small>bpm · min {minHR} / max {maxHR}</small></div>
+          <div className="ch-title">Fréquence cardiaque · {wd.connected && wd.hrHourly.length ? "aujourd'hui" : "—"}</div>
+          <div className="ch-val">{avgHR !== "—" ? avgHR : "—"} <small>bpm · min {minHR} / max {maxHR}</small></div>
           <div className="chart-canvas">
             <LineArea data={hrData} color="var(--red)" gridY={3} fmt={(v) => v} suffix=" bpm" />
           </div>
@@ -632,21 +717,234 @@ const Health = ({ mode = "full" }) => {
       <div className="charts-row">
         <div className="chart-card">
           <div className="ch-title">Évolution du poids · 30j</div>
-          <div className="ch-val">{typeof lastWeight === "number" ? lastWeight.toFixed(1).replace('.', ',') : lastWeight} <small>kg · {wd.measures.weight.length} mesures</small></div>
+          <div className="ch-val">{lastWeight !== null ? lastWeight.toFixed(1).replace('.', ',') : "—"} <small>kg · {wd.measures.weight.length} mesure(s)</small></div>
           <div className="chart-canvas">
-            <LineArea data={wd.connected && wd.measures.weight.length >= 2 ? wd.measures.weight.map(w => w.val) : [80.2, 80.0, 79.9, 79.8, 79.7, 79.5, 79.4, 79.5, 79.3, 79.2, 79.0, 79.1, 78.9, 78.8, 78.9, 78.7, 78.8, 78.6, 78.5, 78.6, 78.4, 78.5, 78.6, 78.7, 78.5, 78.6, 78.4, 78.5, 78.6, 78.6]}
+            <LineArea data={wd.connected && wd.measures.weight.length >= 2 ? wd.measures.weight.map(w => w.val) : []}
               color="var(--green)" gridY={3} fmt={(v) => v.toFixed(1)} suffix=" kg" />
           </div>
         </div>
 
         <div className="chart-card">
           <div className="ch-title">Phases de sommeil · cette nuit</div>
-          <div className="ch-val">7,4 <small>h · 92% qualité</small></div>
+          <div className="ch-val">{avgSleep !== "—" ? avgSleep : "—"} <small>h moy.</small></div>
           <div className="chart-canvas">
             <SleepStages />
           </div>
         </div>
       </div>
+    </div>
+  );
+};
+
+/* ════════════════════════════════════════════════════════
+   HEALTH MOBILE — Vue santé pensée pour téléphone
+   Pas de charts complexes : KPIs + ring de pas + sparkline
+═══════════════════════════════════════════════════════════ */
+const HealthMobile = () => {
+  const wd = useWithings(7);
+  const [expanded, setExpanded] = React.useState(false);
+
+  /* ── Calculs ── */
+  const todaySteps   = wd.connected ? wd.todaySteps : 0;
+  const STEPS_GOAL   = 10000;
+  const stepsPct     = Math.min(100, Math.round((todaySteps / STEPS_GOAL) * 100));
+
+  const sleepHours = wd.connected && wd.sleep.length
+    ? wd.sleep.slice(-7).map(s => {
+        const total = (s.data?.deepsleepduration || 0) + (s.data?.lightsleepduration || 0) + (s.data?.remsleepduration || 0);
+        return Math.round((total / 3600) * 10) / 10;
+      })
+    : [];
+  const avgSleep = sleepHours.length
+    ? (sleepHours.reduce((a, b) => a + b, 0) / sleepHours.length).toFixed(1).replace('.', ',')
+    : "—";
+  const lastSleep = sleepHours.length ? sleepHours[sleepHours.length - 1]?.toFixed(1).replace('.', ',') : "—";
+
+  const validHR = wd.connected && wd.hrHourly.length
+    ? wd.hrHourly.map(h => h.val).filter(v => v > 0) : [];
+  const avgHR  = validHR.length ? Math.round(validHR.reduce((a, b) => a + b, 0) / validHR.length) : null;
+  const minHR  = validHR.length ? Math.min(...validHR) : null;
+  const maxHR  = validHR.length ? Math.max(...validHR) : null;
+
+  const lastWeight = wd.connected && wd.measures.weight.length
+    ? wd.measures.weight[wd.measures.weight.length - 1].val : null;
+
+  const stepsHistory = wd.connected && wd.steps.length
+    ? wd.steps.slice(-7).map(d => d.steps || 0) : [];
+
+  /* ── État vide : Withings non connecté ── */
+  if (!wd.connected && !wd.loading) {
+    return (
+      <div className="card mh-connect">
+        <div className="mh-connect-icon">⌚</div>
+        <div className="mh-connect-title">Connecte ta montre</div>
+        <div className="mh-connect-sub">Pas, sommeil, fréquence cardiaque — directement ici.</div>
+        <button className="mh-connect-btn" onClick={() => window.Nebula?.withings?.startOAuth()}>
+          Connecter Withings
+        </button>
+      </div>
+    );
+  }
+
+  /* ── Chargement ── */
+  if (wd.loading) {
+    return (
+      <div className="card mh-loading">
+        <div className="mh-loading-row">
+          {[1,2,3,4].map(i => <div key={i} className="mh-skeleton" />)}
+        </div>
+      </div>
+    );
+  }
+
+  /* ── Couleur steps ── */
+  const stepsColor = stepsPct >= 100 ? "var(--green)" : stepsPct >= 60 ? "var(--accent)" : "var(--amber)";
+  const stepsEmoji = stepsPct >= 100 ? "🎯" : stepsPct >= 60 ? "🔥" : "👟";
+
+  /* ── SVG ring helper ── */
+  const R = 44, CX = 50, CY = 50;
+  const circ = 2 * Math.PI * R;
+  const dash  = (circ * stepsPct) / 100;
+
+  /* ── Sparkline mini 7j pas ── */
+  const SparkLine = ({ data, color }) => {
+    const maxV = Math.max(...data, 1);
+    const W = 220, H = 36;
+    const pts = data.map((v, i) => {
+      const x = (i / (data.length - 1)) * W;
+      const y = H - (v / maxV) * (H - 4);
+      return `${x},${y}`;
+    }).join(' ');
+    return (
+      <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 36, overflow: 'visible' }}>
+        <polyline points={pts} fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+        {data.map((v, i) => (
+          <circle key={i} cx={(i / (data.length - 1)) * W} cy={H - (v / maxV) * (H - 4)} r="3"
+            fill={color} opacity={i === data.length - 1 ? 1 : 0.4} />
+        ))}
+      </svg>
+    );
+  };
+
+  return (
+    <div className="mh-wrap">
+      {/* ── Hero : pas du jour ── */}
+      <div className="card mh-hero">
+        <div className="mh-hero-left">
+          <div className="mh-label">Pas aujourd'hui</div>
+          <div className="mh-steps-val">
+            {todaySteps.toLocaleString("fr-FR")}
+            <span className="mh-steps-unit">pas</span>
+          </div>
+          <div className="mh-steps-goal">
+            Objectif {STEPS_GOAL.toLocaleString("fr-FR")} {stepsEmoji}
+          </div>
+          {/* Barre de progression */}
+          <div className="mh-progress-track">
+            <div className="mh-progress-fill" style={{ width: stepsPct + '%', background: stepsColor }} />
+          </div>
+          <div className="mh-progress-label" style={{ color: stepsColor }}>
+            {stepsPct}% de l'objectif
+          </div>
+        </div>
+        {/* Ring SVG */}
+        <svg className="mh-ring" viewBox="0 0 100 100">
+          <circle cx={CX} cy={CY} r={R} fill="none" stroke="var(--border)" strokeWidth="8" />
+          <circle cx={CX} cy={CY} r={R} fill="none" stroke={stepsColor} strokeWidth="8"
+            strokeLinecap="round"
+            strokeDasharray={`${dash} ${circ}`}
+            strokeDashoffset={circ / 4}
+            style={{ transition: 'stroke-dasharray 0.8s cubic-bezier(0.34,1.56,0.64,1)' }}
+          />
+          <text x={CX} y={CY - 4} textAnchor="middle" fill="var(--text)"
+            style={{ fontSize: 18, fontWeight: 700, fontFamily: 'Inter Tight, sans-serif' }}>
+            {stepsPct}%
+          </text>
+          <text x={CX} y={CY + 12} textAnchor="middle" fill="var(--text-3)"
+            style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.05em' }}>
+            OBJECTIF
+          </text>
+        </svg>
+      </div>
+
+      {/* ── Vitaux : grille 2 × 2 ── */}
+      <div className="mh-vitals">
+        {/* Sommeil */}
+        <div className="card mh-vital-card">
+          <div className="mh-vital-icon" style={{ background: 'var(--blue-soft)', color: 'var(--blue)' }}>🌙</div>
+          <div className="mh-vital-label">Sommeil</div>
+          <div className="mh-vital-val" style={{ color: 'var(--blue)' }}>
+            {lastSleep}<span className="mh-vital-unit">h</span>
+          </div>
+          <div className="mh-vital-sub">moy. {avgSleep} h</div>
+        </div>
+
+        {/* Fréquence cardiaque */}
+        <div className="card mh-vital-card">
+          <div className="mh-vital-icon" style={{ background: 'var(--red-soft)', color: 'var(--red)' }}>❤️</div>
+          <div className="mh-vital-label">Freq. cardiaque</div>
+          <div className="mh-vital-val" style={{ color: 'var(--red)' }}>
+            {avgHR ?? "—"}<span className="mh-vital-unit">bpm</span>
+          </div>
+          <div className="mh-vital-sub">
+            {minHR && maxHR ? `${minHR}–${maxHR} bpm` : "non dispo"}
+          </div>
+        </div>
+
+        {/* Poids */}
+        <div className="card mh-vital-card">
+          <div className="mh-vital-icon" style={{ background: 'var(--green-soft)', color: 'var(--green)' }}>⚖️</div>
+          <div className="mh-vital-label">Poids</div>
+          <div className="mh-vital-val" style={{ color: 'var(--green)' }}>
+            {lastWeight != null ? lastWeight.toFixed(1).replace('.', ',') : "—"}
+            <span className="mh-vital-unit">kg</span>
+          </div>
+          <div className="mh-vital-sub">
+            {wd.measures.weight.length ? `${wd.measures.weight.length} mesures` : "non dispo"}
+          </div>
+        </div>
+
+        {/* Calories placeholder */}
+        <div className="card mh-vital-card mh-vital-dim">
+          <div className="mh-vital-icon" style={{ background: 'var(--amber-soft)', color: 'var(--amber)' }}>🔥</div>
+          <div className="mh-vital-label">Calories</div>
+          <div className="mh-vital-val" style={{ color: 'var(--amber)' }}>
+            —<span className="mh-vital-unit">kcal</span>
+          </div>
+          <div className="mh-vital-sub">non disponible</div>
+        </div>
+      </div>
+
+      {/* ── Sparkline 7 jours ── */}
+      {stepsHistory.length > 1 && (
+        <div className="card mh-sparkline">
+          <button className="mh-spark-toggle" onClick={() => setExpanded(e => !e)}>
+            <span className="mh-label">Évolution · 7 jours</span>
+            <span className="mh-spark-arrow">{expanded ? "▲" : "▼"}</span>
+          </button>
+          {expanded && (
+            <div className="mh-spark-body">
+              <SparkLine data={stepsHistory} color="var(--accent)" />
+              <div className="mh-spark-labels">
+                {(() => {
+                  const dayNames = ["Dim","Lun","Mar","Mer","Jeu","Ven","Sam"];
+                  const labels = [];
+                  for (let i = 6; i >= 0; i--) {
+                    const d = new Date(); d.setDate(d.getDate() - i);
+                    labels.push(dayNames[d.getDay()]);
+                  }
+                  return labels.slice(-stepsHistory.length).map((l, i) => (
+                    <span key={i} className="mh-spark-day">{l}</span>
+                  ));
+                })()}
+              </div>
+              <div className="mh-spark-avg">
+                Moyenne 7j : <strong>{Math.round(stepsHistory.reduce((a,b)=>a+b,0)/stepsHistory.length).toLocaleString("fr-FR")} pas</strong>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };
@@ -671,8 +969,8 @@ const SleepStages = () => {
   const segW = innerW / stages.length;
   const yFor = (s) => padT + (s / 3) * innerH;
   return (
-    <div ref={ref} style={{ position: "relative", width: "100%", height: "100%" }}>
-      <svg width={w} height={h} style={{ overflow: "visible" }}>
+    <div ref={ref} style={{ position: "relative", width: "100%", height: "100%", overflow: "hidden" }}>
+      <svg width={w} height={h} style={{ overflow: "visible", maxWidth: "100%", display: "block" }}>
         {labels.map((l, i) => (
           <g key={i}>
             <line x1={padL} y1={padT + (i/3) * innerH} x2={w-padR} y2={padT + (i/3) * innerH} className="gridline" strokeDasharray="2 4" />
@@ -1536,25 +1834,27 @@ const IntroAnimation = ({ onDone }) => {
   );
 };
 
-/* === useDevice : détecte mobile vs desktop (initialisé par index.html) ─── */
+/* === useDevice : détecte mobile vs desktop ─── */
+function detectDevice() {
+  if (typeof window === 'undefined') return 'desktop';
+  const ua = navigator.userAgent || '';
+  const isPhoneUA = /iPhone|iPod|Android.*Mobile|webOS|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+  /* Seuil 900px pour couvrir tablettes en portrait */
+  const isSmallViewport = window.innerWidth <= 900;
+  const isCoarsePointer = window.matchMedia('(pointer: coarse)').matches;
+  const isMobile = isPhoneUA || isSmallViewport || (isCoarsePointer && window.innerWidth <= 1024);
+  const next = isMobile ? 'mobile' : 'desktop';
+  document.documentElement.dataset.device = next;
+  window.__NEBULA_DEVICE__ = next;
+  return next;
+}
+
 const useDevice = () => {
-  const [device, setDevice] = React.useState(() => {
-    if (typeof window === 'undefined') return 'desktop';
-    return window.__NEBULA_DEVICE__ || (document.documentElement.dataset.device === 'mobile' ? 'mobile' : 'desktop');
-  });
+  const [device, setDevice] = React.useState(detectDevice);
   React.useEffect(() => {
-    /* Ré-évalue sur resize (rotation, fenêtre redimensionnée) */
-    const recalc = () => {
-      const ua = navigator.userAgent || '';
-      const isPhoneUA = /iPhone|iPod|Android.*Mobile|webOS|BlackBerry|IEMobile|Opera Mini/i.test(ua);
-      const isSmallViewport = window.matchMedia('(max-width: 768px)').matches;
-      const isCoarsePointer = window.matchMedia('(pointer: coarse)').matches;
-      const isMobile = isPhoneUA || (isSmallViewport && isCoarsePointer);
-      const next = isMobile ? 'mobile' : 'desktop';
-      document.documentElement.dataset.device = next;
-      window.__NEBULA_DEVICE__ = next;
-      setDevice(next);
-    };
+    /* Recalcule au mount ET au resize */
+    setDevice(detectDevice());
+    const recalc = () => setDevice(detectDevice());
     window.addEventListener('resize', recalc);
     return () => window.removeEventListener('resize', recalc);
   }, []);
@@ -1572,13 +1872,16 @@ const MobileHeader = ({ tw, toggleTheme }) => {
   const greet = now.getHours() < 12 ? "Bonjour" : now.getHours() < 18 ? "Bon après-midi" : "Bonsoir";
   return (
     <header className="m-header">
-      <div>
-        <div className="m-header-greet">{greet}</div>
-        <div className="m-header-date">{days[now.getDay()]} {now.getDate()} {months[now.getMonth()]}</div>
+      {/* Wrapper centré aligné avec .m-feed (max-width 500px) */}
+      <div className="m-header-inner">
+        <div>
+          <div className="m-header-greet">{greet}</div>
+          <div className="m-header-date">{days[now.getDay()]} {now.getDate()} {months[now.getMonth()]}</div>
+        </div>
+        <button className="m-theme-btn" onClick={toggleTheme} aria-label="Changer le thème">
+          <Icon name={tw.theme === "dark" ? "sun" : "moon"} size={18} />
+        </button>
       </div>
-      <button className="m-theme-btn" onClick={toggleTheme} aria-label="Changer le thème">
-        <Icon name={tw.theme === "dark" ? "sun" : "moon"} size={18} />
-      </button>
     </header>
   );
 };
@@ -1610,12 +1913,6 @@ const MobileApp = ({ tw, setTweak, toggleTheme }) => {
         <section className="m-section">
           <MobileSectionHeader icon="weather" title="Météo" />
           <Weather />
-        </section>
-
-        {/* Santé */}
-        <section className="m-section">
-          <MobileSectionHeader icon="health" title="Santé" hint="Données Withings" />
-          <Health />
         </section>
 
         {/* Productivité */}

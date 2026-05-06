@@ -5,12 +5,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <!-- CSP : autorise React + Babel via CDN. 'unsafe-eval' nécessaire pour Babel standalone. -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com data:; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co https://wbsapi.withings.net https://account.withings.com https://api.open-meteo.com https://geocoding-api.open-meteo.com https://cdn.jsdelivr.net https://unpkg.com https://oauth2.googleapis.com https://www.googleapis.com https://accounts.google.com; base-uri 'self'; form-action 'self' https://account.withings.com https://accounts.google.com;">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com data:; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co https://wbsapi.withings.net https://account.withings.com https://api.open-meteo.com https://geocoding-api.open-meteo.com https://cdn.jsdelivr.net https://unpkg.com https://oauth2.googleapis.com https://www.googleapis.com https://accounts.google.com; worker-src 'self'; base-uri 'self'; form-action 'self' https://account.withings.com https://accounts.google.com;">
   <meta http-equiv="X-Content-Type-Options" content="nosniff" />
   <meta name="referrer" content="strict-origin-when-cross-origin" />
 
   <title>Nebula — Dashboard</title>
   <link rel="icon" type="image/svg+xml" href="assets/img/nebula-logo.svg" />
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#7c5cff" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Nebula" />
+  <link rel="apple-touch-icon" href="assets/img/icon-192.png" />
 
   <script>
     /* ── Détection device : mobile vs desktop ──
@@ -94,8 +102,19 @@
        3) Composants JSX (Babel les compile à la volée)
           Ordre : icons → charts → app
   ════════════════════════════════════════════ -->
-  <script type="text/babel" data-presets="react" src="assets/js/design/icons.jsx"></script>
-  <script type="text/babel" data-presets="react" src="assets/js/design/charts.jsx"></script>
-  <script type="text/babel" data-presets="react" src="assets/js/design/app.jsx"></script>
+  <script type="text/babel" data-presets="react" src="assets/js/design/icons.jsx?v=20260505c"></script>
+  <script type="text/babel" data-presets="react" src="assets/js/design/charts.jsx?v=20260506e"></script>
+  <script type="text/babel" data-presets="react" src="assets/js/design/app.jsx?v=20260506d"></script>
+
+  <!-- Service Worker -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .then(reg => console.log('[Nebula] SW enregistré:', reg.scope))
+          .catch(err => console.warn('[Nebula] SW erreur:', err));
+      });
+    }
+  </script>
 </body>
 </html>

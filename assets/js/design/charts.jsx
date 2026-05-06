@@ -1,19 +1,23 @@
 /* Charts.jsx — animated SVG charts */
 
 const useDims = (ref) => {
-  const [d, setD] = React.useState({ w: 400, h: 160 });
+  /* Initialise avec la largeur réelle du viewport − marges
+     pour éviter un premier rendu SVG trop large sur mobile */
+  const [d, setD] = React.useState(() => {
+    const safeW = typeof window !== 'undefined'
+      ? Math.max(80, Math.floor(window.innerWidth - 64))
+      : 300;
+    return { w: safeW, h: 160 };
+  });
   React.useEffect(() => {
     if (!ref.current) return;
     let raf;
     const ro = new ResizeObserver(([e]) => {
-      /* Debounce via rAF : une seule mise à jour par frame */
       cancelAnimationFrame(raf);
       raf = requestAnimationFrame(() => {
         const r = e.contentRect;
         const w = Math.max(80, Math.floor(r.width));
         const h = Math.max(60, Math.floor(r.height));
-        /* Ne setState QUE si les dimensions ont vraiment changé
-           (évite les re-renders → re-animation des barres) */
         setD(prev => (prev.w === w && prev.h === h) ? prev : { w, h });
       });
     });
@@ -41,8 +45,8 @@ const BarChart = ({ data, accent = "var(--accent)", accent2 = "var(--blue)", lab
   const maxIdx = data.indexOf(Math.max(...data));
 
   return (
-    <div ref={ref} style={{ position: "relative", width: "100%", height: "100%" }}>
-      <svg width={w} height={h} style={{ overflow: "visible" }}>
+    <div ref={ref} style={{ position: "relative", width: "100%", height: "100%", overflow: "hidden" }}>
+      <svg width={w} height={h} style={{ overflow: "visible", maxWidth: "100%", display: "block" }}>
         <defs>
           <linearGradient id={`bg-${id}`} x1="0" x2="0" y1="0" y2="1">
             <stop offset="0%" stopColor={accent} stopOpacity="1" />
@@ -133,6 +137,15 @@ const LineArea = ({ data, color = "var(--accent)", fmt = (v) => v, gridY = 4, sm
   const padL = 32, padR = 14, padT = 14, padB = 22;
   const innerW = w - padL - padR;
   const innerH = h - padT - padB;
+
+  if (!data || data.length < 2) {
+    return (
+      <div ref={ref} style={{ position: "relative", width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <span style={{ fontSize: 11, color: "var(--text-3)" }}>Aucune donnée</span>
+      </div>
+    );
+  }
+
   const min = Math.min(...data);
   const max = Math.max(...data);
   const range = max - min || 1;
@@ -155,8 +168,8 @@ const LineArea = ({ data, color = "var(--accent)", fmt = (v) => v, gridY = 4, sm
   const [hover, setHover] = React.useState(null);
 
   return (
-    <div ref={ref} style={{ position: "relative", width: "100%", height: "100%" }}>
-      <svg width={w} height={h} style={{ overflow: "visible" }}>
+    <div ref={ref} style={{ position: "relative", width: "100%", height: "100%", overflow: "hidden" }}>
+      <svg width={w} height={h} style={{ overflow: "visible", maxWidth: "100%", display: "block" }}>
         <defs>
           <linearGradient id={`grad-${id}`} x1="0" x2="0" y1="0" y2="1">
             <stop offset="0%" stopColor={color} stopOpacity="0.45" />
@@ -241,8 +254,8 @@ const GroupedBar = ({ months, income, expense, fmt = (v) => v }) => {
   const [hover, setHover] = React.useState(null);
 
   return (
-    <div ref={ref} style={{ position: "relative", width: "100%", height: "100%" }}>
-      <svg width={w} height={h} style={{ overflow: "visible" }}>
+    <div ref={ref} style={{ position: "relative", width: "100%", height: "100%", overflow: "hidden" }}>
+      <svg width={w} height={h} style={{ overflow: "visible", maxWidth: "100%", display: "block" }}>
         <defs>
           <linearGradient id={`gIn-${id}`} x1="0" x2="0" y1="0" y2="1">
             <stop offset="0%" stopColor="var(--green)" stopOpacity="1" />

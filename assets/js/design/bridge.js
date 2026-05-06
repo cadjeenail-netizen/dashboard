@@ -3,13 +3,15 @@
    Babel standalone ne gère pas import/export → on passe par window.Nebula
    ════════════════════════════════════════════════════════ */
 
-import * as withings from '../withings.js';
-import * as google   from '../google.js';
-import * as storage  from '../storage.js';
-import * as auth     from '../auth.js';
-import * as sync     from '../sync.js';
+import * as withings      from '../withings.js';
+import * as google        from '../google.js';
+import * as storage       from '../storage.js';
+import * as auth          from '../auth.js';
+import * as sync          from '../sync.js';
+import * as scoring       from '../scoring.js';
+import * as notifications from '../notifications.js';
 
-window.Nebula = { withings, google, storage, auth, sync };
+window.Nebula = { withings, google, storage, auth, sync, scoring, notifications };
 
 /* Flag + event pour que React puisse attendre si besoin */
 window.NebulaReady = true;
@@ -62,4 +64,18 @@ async function initCloudSync() {
 
   /* 3. Sync cloud */
   await initCloudSync();
+
+  /* 4. Notifications — demander permission + planifier rappels */
+  try {
+    const granted = await notifications.requestPermission();
+    if (granted) {
+      const habits = storage.get('habits', []);
+      notifications.scheduleReminders(habits);
+      /* Replanifier quand les habitudes changent */
+      window.addEventListener('habits-changed', () => {
+        const freshHabits = storage.get('habits', []);
+        notifications.scheduleReminders(freshHabits);
+      });
+    }
+  } catch (e) { console.warn('[Nebula] Notifications erreur:', e); }
 })();

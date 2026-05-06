@@ -4,6 +4,7 @@
    ════════════════════════════════════════════════════════ */
 
 import { get, set } from './storage.js';
+import { getTodayHabitsIndex, calculateTodayScore, updateStreak, saveScore } from './scoring.js';
 
 /* Semaine courante : lundi→dimanche */
 const JOURS_COURT = ['L','M','M','J','V','S','D'];
@@ -45,6 +46,7 @@ export function initHabits() {
     listEl.innerHTML = '';
     let totalDone = 0;
     const total   = habits.length * 7;
+    const todayIdx = getTodayHabitsIndex();
 
     habits.forEach(habit => {
       const done = habit.days.filter(Boolean).length;
@@ -58,7 +60,7 @@ export function initHabits() {
         <div class="habit-days" data-id="${habit.id}">
           ${JOURS_COURT.map((j, i) => `
             <button
-              class="habit-day${habit.days[i] ? ' done' : ''}"
+              class="habit-day${habit.days[i] ? ' done' : ''}${i === todayIdx ? ' today' : ''}"
               data-day="${i}"
               title="${['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche'][i]}"
             >${j}</button>
@@ -73,8 +75,22 @@ export function initHabits() {
     if (scoreEl)   scoreEl.textContent  = `${totalDone} / ${total}`;
     if (globalBar) globalBar.style.width = pct + '%';
 
-    /* Notifie app.js */
-    window.dispatchEvent(new CustomEvent('habits-changed', { detail: { pct } }));
+    /* Calcul du score du jour et mise à jour du streak */
+    const todayScore = calculateTodayScore(habits);
+    const habitsDoneToday = habits.filter(h => h.days[todayIdx]).length;
+    const streakData = updateStreak(habitsDoneToday);
+    saveScore(todayScore);
+
+    /* Notifie app.jsx avec les données enrichies */
+    window.dispatchEvent(new CustomEvent('habits-changed', {
+      detail: {
+        pct,
+        score: todayScore,
+        streak: streakData,
+        habitsDone: habitsDoneToday,
+        habitsTotal: habits.length,
+      }
+    }));
   }
 
   /* ── Délégation d'événements ── */

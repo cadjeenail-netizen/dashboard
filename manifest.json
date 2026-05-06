@@ -1,0 +1,36 @@
+{
+  "name": "Nebula Dashboard",
+  "short_name": "Nebula",
+  "description": "Ton Personal OS — habitudes, score, santé, finances",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#07101e",
+  "theme_color": "#7c5cff",
+  "lang": "fr",
+  "icons": [
+    {
+      "src": "assets/img/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "assets/img/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["productivity", "lifestyle"],
+  "shortcuts": [
+    {
+      "name": "Habitudes du jour",
+      "short_name": "Habitudes",
+      "description": "Voir et cocher tes habitudes",
+      "url": "/?section=productivity",
+      "icons": [{ "src": "assets/img/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}
