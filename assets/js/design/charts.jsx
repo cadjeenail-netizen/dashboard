@@ -34,6 +34,16 @@ const BarChart = ({ data, accent = "var(--accent)", accent2 = "var(--blue)", lab
   const [hover, setHover] = React.useState(null);
   const id = React.useId();
 
+  /* Guard : données vides ou dimensions nulles → placeholder */
+  if (!data || data.length === 0 || w <= 0 || h <= 0) {
+    return (
+      <div ref={ref} style={{ position: "relative", width: "100%", height: "100%",
+        display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <span style={{ fontSize: 11, color: "var(--text-3)" }}>Aucune donnée</span>
+      </div>
+    );
+  }
+
   const padL = 32, padR = 12, padT = 14, padB = 24;
   const innerW = w - padL - padR;
   const innerH = h - padT - padB;
@@ -242,16 +252,27 @@ const GroupedBar = ({ months, income, expense, fmt = (v) => v }) => {
   const ref = React.useRef(null);
   const { w, h } = useDims(ref);
   const id = React.useId();
+  const [hover, setHover] = React.useState(null);
+
+  /* Guard : données vides ou dimensions nulles → placeholder */
+  if (!months || months.length === 0 || !income || !expense || w <= 0 || h <= 0) {
+    return (
+      <div ref={ref} style={{ position: "relative", width: "100%", height: "100%",
+        display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <span style={{ fontSize: 11, color: "var(--text-3)" }}>Aucune donnée</span>
+      </div>
+    );
+  }
+
   const padL = 36, padR = 12, padT = 14, padB = 24;
   const innerW = w - padL - padR;
   const innerH = h - padT - padB;
-  const max = Math.max(...income, ...expense);
+  const max = Math.max(...income, ...expense, 1);
   const niceMax = Math.ceil(max * 1.15 / 500) * 500;
   const step = innerW / months.length;
   const groupW = step * 0.7;
   const barW = groupW / 2 - 3;
   const yLines = 4;
-  const [hover, setHover] = React.useState(null);
 
   return (
     <div ref={ref} style={{ position: "relative", width: "100%", height: "100%", overflow: "hidden" }}>
