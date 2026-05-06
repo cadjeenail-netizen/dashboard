@@ -3833,3 +3833,83 @@ body {
   }
 }
 
+/* ═══════════════════════════════════════════════════════════
+   RESPONSIVE MOBILE — Corrections ciblées v2
+   ✅ Desktop INCHANGÉ  ✅  Aucun scroll horizontal  ✅  Tout centré
+   Règles ADDITIVES uniquement — aucune suppression de l'existant
+══════════════════════════════════════════════════════════════ */
+
+/* ── 1. Container global centré ──────────────────────────── */
+.main-container {
+  width: 100%;
+  max-width: 480px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+/* ── 2. Cards : max-width universel (sans casser le desktop grid) */
+.card {
+  max-width: 100%;
+}
+
+/* ── 3. Classe utilitaire .chart-container ─────────────────
+   À utiliser pour wraper tout SVG / canvas de graphique.
+   Les wrappers inline dans charts.jsx sont déjà overflow:hidden,
+   cette classe est disponible pour les ajouts futurs. ── */
+.chart-container {
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+.chart-container svg,
+.chart-container canvas {
+  width: 100%;
+  max-width: 100%;
+  display: block;
+}
+
+/* ── 4. @media (max-width: 768px) — layout mobile ─────────── */
+@media (max-width: 768px) {
+
+  /* Classe .layout → colonne centrée (si utilisée dans le JSX) */
+  .layout {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* Container : padding latéral réduit sur petits écrans */
+  .main-container {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  /* Cards : full-width, jamais coupées */
+  .card {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  /* Charts et graphiques : toujours dans le flux */
+  .chart-container,
+  .chart-canvas,
+  .fin-chart,
+  .home-chart-wrap {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* Textes longs : ne débordent pas */
+  .greet h1,
+  .fin-balance .v,
+  .weather-temp {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
