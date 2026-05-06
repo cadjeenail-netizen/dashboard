@@ -3,7 +3,7 @@
    Stratégie : cache-first pour assets, network-first pour API
    ════════════════════════════════════════════════════════ */
 
-const CACHE_NAME = 'nebula-v2';
+const CACHE_NAME = 'nebula-v3';
 
 /* Assets à mettre en cache immédiatement (app shell) */
 const SHELL_ASSETS = [
