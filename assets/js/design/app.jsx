@@ -1915,6 +1915,12 @@ const MobileApp = ({ tw, setTweak, toggleTheme }) => {
           <Weather />
         </section>
 
+        {/* Santé */}
+        <section className="m-section">
+          <MobileSectionHeader icon="health" title="Santé" hint="Withings · 7 jours" />
+          <HealthMobile />
+        </section>
+
         {/* Productivité */}
         <section className="m-section">
           <MobileSectionHeader icon="productivity" title="Productivité" hint="Habitudes, objectifs, tâches" />
